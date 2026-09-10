@@ -1,0 +1,31 @@
+<article class="chapter" [id]="city().id" reveal>
+  <header class="head">
+    <p class="kicker">{{ city().kicker }}</p>
+    <h2>{{ city().name }}</h2>
+    <p class="country">{{ city().country }}</p>
+    <p class="story">{{ city().story }}</p>
+    <div class="chips">
+      <button type="button" [class.on]="filter() === 'all'" (click)="filter.set('all')">Все</button>
+      <button type="button" [class.on]="filter() === 'sight'" (click)="filter.set('sight')">
+        Места
+      </button>
+      <button type="button" [class.on]="filter() === 'food'" (click)="filter.set('food')">
+        Рестораны
+      </button>
+    </div>
+  </header>
+
+  <div class="ig">
+    @for (p of places(); track p.title) {
+      <figure class="card" [class.card--food]="p.kind === 'food'">
+        <img [src]="p.image" [alt]="p.title" loading="lazy" referrerpolicy="no-referrer" />
+        <figcaption>
+          <span>{{ p.location }}</span>
+          <strong>{{ p.title }}</strong>
+          <em>{{ p.kind === 'food' ? 'Атмосфера' : 'Достопримечательность' }}</em>
+          <p>{{ p.caption }}</p>
+        </figcaption>
+      </figure>
+    }
+  </div>
+</article>

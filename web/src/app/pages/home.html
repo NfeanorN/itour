@@ -1,0 +1,85 @@
+<section class="hero">
+  <img [src]="hero" alt="" [style.transform]="'translate3d(0, ' + heroShift() + 'px, 0) scale(1.12)'" />
+  <div class="veil"></div>
+  <div class="hero-copy">
+    <p class="eyebrow">Авторский евротур</p>
+    <h1>Европа.<br />Как кино.</h1>
+    <p class="sub">
+      Алматы → Рим → Венеция → Париж → Цюрих → Лаутербруннен → домой.
+      Самолёты, поезда, Ватикан, каналы и альпийская тишина.
+    </p>
+    <div class="hero-actions">
+      <a href="#book" class="btn">Записаться в группу</a>
+      <a href="#route" class="btn btn--ghost">Смотреть маршрут</a>
+    </div>
+  </div>
+</section>
+
+<section class="strip" reveal>
+  <p>12 дней · 5 городов · Италия, Франция, Швейцария · старт из Алматы</p>
+</section>
+
+<div id="route">
+  <app-journey-map />
+</div>
+
+<section class="transit" reveal>
+  <div>
+    <h2>Как едем</h2>
+    <ul>
+      <li><span>Самолёт</span> Алматы — Рим <i>пересадка в Стамбуле</i></li>
+      <li><span>Поезд</span> Рим — Венеция</li>
+      <li><span>Самолёт</span> Венеция — Париж</li>
+      <li><span>Поезд</span> Париж — Цюрих</li>
+      <li><span>Поезд</span> Цюрих — Лаутербруннен и обратно</li>
+      <li><span>Самолёт</span> Цюрих — Алматы <i>пересадка в Стамбуле</i></li>
+    </ul>
+  </div>
+  <p>
+    Не конструктор «сами разберётесь». Маршрут собран так, чтобы каждый переезд был частью фильма:
+    утро в одном свете, вечер — уже в другом.
+  </p>
+</section>
+
+<div id="cities">
+  @for (c of cities; track c.id) {
+    <app-city-chapter [city]="c" />
+  }
+</div>
+
+<section class="access" reveal>
+  <h2>Гайд откроется после тура</h2>
+  <p>
+    Виза, пакет документов, подача в Италию, сборы и чемоданы — всё лежит в закрытом разделе.
+    После оплаты мы создаём вам аккаунт в админке и присылаем логин.
+  </p>
+  <a routerLink="/guide" class="btn btn--ghost">Перейти в гайд</a>
+</section>
+
+<section class="book" id="book" reveal>
+  <div>
+    <h2>Записаться<br />и связаться</h2>
+    <p>Оставьте контакт — напишем в тот же день. Или сразу в WhatsApp.</p>
+    <div class="social">
+      <a [href]="ig" target="_blank" rel="noreferrer">Instagram</a>
+      <a [href]="wa" target="_blank" rel="noreferrer">WhatsApp</a>
+    </div>
+  </div>
+
+  @if (sent()) {
+    <p class="thanks">Заявка ушла. Скоро напишем.</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label>Имя<input formControlName="name" placeholder="Как к вам обращаться" /></label>
+      <label>Телефон<input formControlName="phone" placeholder="+7 …" /></label>
+      <label>Telegram<input formControlName="telegram" placeholder="@username" /></label>
+      <label>Сообщение<textarea formControlName="message" rows="3"></textarea></label>
+      @if (err()) {
+        <p class="err">{{ err() }}</p>
+      }
+      <button class="btn" type="submit" [disabled]="sending()">
+        {{ sending() ? 'Отправляем…' : 'Оставить заявку' }}
+      </button>
+    </form>
+  }
+</section>

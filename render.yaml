@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: itour-api
+    runtime: docker
+    plan: free
+    rootDir: server
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATA_DIR
+        value: /app/data
+      - key: GUIDES_DIR
+        value: /app/content/guides

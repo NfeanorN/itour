@@ -1,0 +1,15 @@
+server/data/
+server/bin/
+*.db
+.DS_Store
+.tools/
+.vercel/
+web/.vercel/
+web/dist-vercel.json
+web/node_modules/
+web/dist/
+web/.angular/
+.env
+.env.*
+!.env.example
+

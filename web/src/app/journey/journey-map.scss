@@ -1,0 +1,242 @@
+:host {
+  display: block;
+}
+
+.story-map {
+  position: relative;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  background: #121814;
+}
+
+.map {
+  height: 100%;
+  width: 100%;
+  background: #121814;
+}
+
+.grade,
+.vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 350;
+}
+
+.grade {
+  background: rgb(18 12 6 / 0.16);
+  mix-blend-mode: multiply;
+}
+
+.vignette {
+  background: radial-gradient(ellipse at center, transparent 58%, rgb(0 0 0 / 0.38) 100%);
+}
+
+.hud {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 28px;
+  z-index: 400;
+  max-width: 520px;
+  padding: 22px 24px 24px;
+  border-radius: 24px;
+  background: rgb(8 10 14 / 0.62);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.35);
+}
+
+.kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c4b49a;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -0.04em;
+  font-weight: 600;
+}
+
+.text {
+  margin: 0;
+  color: #e4e0d6;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.end {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.end p {
+  margin: 0;
+  color: #d2d2d7;
+  font-size: 14px;
+}
+
+.end button {
+  border: 0;
+  border-radius: 980px;
+  background: #f5f5f7;
+  color: #111;
+  font: inherit;
+  font-weight: 600;
+  padding: 12px 18px;
+  cursor: pointer;
+}
+
+:host ::ng-deep .leaflet-container {
+  background: #121814;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+:host ::ng-deep .leaflet-tile-pane {
+  filter: saturate(1.12) contrast(1.08) brightness(0.9);
+}
+
+:host ::ng-deep .leaflet-control-attribution {
+  background: rgb(0 0 0 / 0.35) !important;
+  color: #6e6e73;
+  font-size: 10px;
+}
+
+:host ::ng-deep .leaflet-control-attribution a {
+  color: #8e8e93;
+}
+
+:host ::ng-deep .leaflet-marker-icon,
+:host ::ng-deep .leaflet-marker-shadow {
+  transition: none !important;
+}
+
+:host ::ng-deep .pin {
+  background: none !important;
+  border: 0 !important;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+:host ::ng-deep .pin.is-on {
+  opacity: 1;
+}
+
+:host ::ng-deep .pin-dot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c4b49a;
+  box-shadow: 0 0 0 6px rgb(244 228 193 / 0.16);
+}
+
+:host ::ng-deep .pin.is-now .pin-dot {
+  background: #fff;
+  box-shadow: 0 0 0 8px rgb(255 255 255 / 0.22);
+}
+
+:host ::ng-deep .pin-name {
+  display: block;
+  margin-top: 6px;
+  color: #f7f1e6;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.85);
+}
+
+:host ::ng-deep .pin--zurich .pin-name {
+  margin-top: -22px;
+  margin-left: 14px;
+}
+
+:host ::ng-deep .pin--lauterbrunnen .pin-name {
+  margin-top: 10px;
+  margin-left: -108px;
+}
+
+:host ::ng-deep .pin--hub .pin-dot {
+  width: 6px;
+  height: 6px;
+  background: #8a8070;
+  box-shadow: 0 0 0 4px rgb(244 228 193 / 0.1);
+}
+
+:host ::ng-deep .pin--hub .pin-name {
+  margin-top: 5px;
+  color: #c4b49a;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .pin--hub.is-now .pin-dot {
+  background: #c4b49a;
+  box-shadow: 0 0 0 5px rgb(244 228 193 / 0.16);
+}
+
+:host ::ng-deep .craft {
+  background: none !important;
+  border: 0 !important;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+:host ::ng-deep .craft.is-hidden {
+  opacity: 0;
+}
+
+:host ::ng-deep .craft-rot {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.7));
+}
+
+:host ::ng-deep .craft-rot .ico-plane {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+:host ::ng-deep .craft-rot .ico-train {
+  display: none;
+  width: 18px;
+  height: 38px;
+}
+
+:host ::ng-deep .craft-rot[data-kind='train'] .ico-plane {
+  display: none;
+}
+
+:host ::ng-deep .craft-rot[data-kind='train'] .ico-train {
+  display: block;
+}
+
+@media (max-width: 720px) {
+  .hud {
+    left: 12px;
+    right: 12px;
+    bottom: 14px;
+    padding: 16px 18px;
+  }
+  .end {
+    top: auto;
+    bottom: 148px;
+    right: 12px;
+  }
+}

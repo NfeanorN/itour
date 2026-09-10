@@ -1,0 +1,18 @@
+<section class="story-map">
+  <div #map class="map" role="img" aria-label="Карта маршрута"></div>
+  <div class="grade"></div>
+  <div class="vignette"></div>
+
+  <div class="hud">
+    <p class="kicker">{{ mode() === 'train' ? 'Поезд' : mode() === 'plane' ? 'Самолёт' : mode() === 'layover' ? 'Стыковка' : 'Маршрут' }}</p>
+    <h2>{{ title() }}</h2>
+    <p class="text">{{ text() }}</p>
+  </div>
+
+  @if (done()) {
+    <div class="end">
+      <p>Можно подвигать карту руками.</p>
+      <button type="button" (click)="replay()">Посмотреть ещё раз</button>
+    </div>
+  }
+</section>
