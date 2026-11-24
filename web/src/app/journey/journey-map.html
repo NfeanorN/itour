@@ -53,7 +53,7 @@
           <div class="endpoint">
             <div class="code-row">
               <span class="code">{{ fromCity().code }}</span>
-              <span class="flag" aria-hidden="true">{{ fromCity().flag }}</span>
+              <span class="flag-svg" [attr.data-cc]="countryIso(fromCity().id)" aria-hidden="true"></span>
             </div>
             <span class="place">{{ i18n.pick(fromCity().name) }}</span>
             <span class="sub">{{ fromCity().airport }}</span>
@@ -80,7 +80,7 @@
 
           <div class="endpoint endpoint--right">
             <div class="code-row">
-              <span class="flag" aria-hidden="true">{{ toCity().flag }}</span>
+              <span class="flag-svg" [attr.data-cc]="countryIso(toCity().id)" aria-hidden="true"></span>
               <span class="code">{{ toCity().code }}</span>
             </div>
             <span class="place">{{ i18n.pick(toCity().name) }}</span>
@@ -89,14 +89,28 @@
         </div>
       </div>
 
-      <div class="viewport">
-        <div
-          #map
-          class="map"
+      <div
+        #viewport
+        class="viewport"
+        [class.is-draggable]="!playing()"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp()"
+        (pointercancel)="onPointerUp()"
+      >
+        <canvas
+          #canvas
+          class="map-canvas"
           role="img"
-          [attr.aria-label]="i18n.t('ARALA Еуротур маршрутының интерактивті картасы', 'Интерактивная карта маршрута Евротура ARALA')"
-        ></div>
+          [attr.aria-label]="i18n.t('ARALA Еуротур маршрутының векторлық картасы', 'Векторная карта маршрута Евротура ARALA')"
+        ></canvas>
         <div class="vignette" aria-hidden="true"></div>
+
+        <div class="zoom-controls" aria-label="Масштаб">
+          <button type="button" (click)="nudgeZoom(0.65)" aria-label="Жақындату / Приблизить">+</button>
+          <button type="button" (click)="nudgeZoom(-0.65)" aria-label="Алыстату / Отдалить">−</button>
+        </div>
+
         <div class="story-chip">
           <span class="carrier">{{ i18n.pick(currentLeg().carrier) }}</span>
           <p>{{ i18n.pick(currentLeg().story) }}</p>

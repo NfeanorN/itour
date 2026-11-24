@@ -122,9 +122,22 @@ test('ARALA bilingual Classic Eurotour data has complete kk & ru pairs', () => {
   assert.ok(url.includes(encodeURIComponent('4–13 наурыз')));
 });
 
-test('map uses Esri Dark Gray Canvas (no API-key CARTO), Kazakh is default lang, and regressions hold', () => {
+test('map uses preloaded local 50m vector canvas (zero external tiles), Kazakh-native fonts, and clean regressions', () => {
   const i18nSrc = readFileSync(resolve(import.meta.dirname, '..', 'core', 'i18n.ts'), 'utf8');
   assert.ok(i18nSrc.includes("return 'kk'"), 'Kazakh must be the default language');
+
+  const indexHtml = readFileSync(resolve(import.meta.dirname, '..', '..', '..', 'src', 'index.html'), 'utf8');
+  assert.ok(indexHtml.includes('Golos+Text'), 'must load Kazakh-native Golos Text');
+  assert.ok(indexHtml.includes('IBM+Plex+Mono'), 'must load Kazakh-native IBM Plex Mono');
+  assert.ok(indexHtml.includes('Lora'), 'must load Kazakh-native Lora serif');
+  assert.ok(!indexHtml.includes('Manrope'), 'must not use Manrope (missing Kazakh glyphs)');
+  assert.ok(!indexHtml.includes('JetBrains+Mono'), 'must not use JetBrains Mono (missing Kazakh glyphs)');
+
+  const vectorData = JSON.parse(
+    readFileSync(resolve(import.meta.dirname, '..', '..', '..', 'public', 'data', 'eurasia-map.json'), 'utf8'),
+  );
+  assert.ok(vectorData.countries.length > 150, 'vector dataset must include Eurasia country polygons');
+  assert.ok(vectorData.lakes.length > 50, 'vector dataset must include lakes');
 
   const appCfg = readFileSync(resolve(import.meta.dirname, '..', 'app.config.ts'), 'utf8');
   assert.ok(appCfg.includes("anchorScrolling: 'enabled'"), 'anchorScrolling must be enabled');
@@ -132,10 +145,11 @@ test('map uses Esri Dark Gray Canvas (no API-key CARTO), Kazakh is default lang,
   const modalSrc = readFileSync(resolve(import.meta.dirname, '..', 'shared', 'booking-modal.ts'), 'utf8');
   assert.ok(modalSrc.includes('overflow-y: auto'), 'booking modal sheet must scroll vertically on short viewports');
 
+  const homeHtml = readFileSync(resolve(import.meta.dirname, '..', 'pages', 'home.html'), 'utf8');
+  assert.ok(!homeHtml.includes('app-hotel-showcase'), 'exaggerated hotel showcase must be removed');
+
   const mapSrc = readFileSync(resolve(import.meta.dirname, 'journey-map.ts'), 'utf8');
-  assert.ok(mapSrc.includes('World_Dark_Gray_Base'), 'map must use Esri World_Dark_Gray_Base tiles');
-  assert.ok(!mapSrc.includes('basemaps.cartocdn.com'), 'map must not use CARTO tiles that require an API key');
-  assert.ok(mapSrc.includes('updateWhenZooming: false'), 'map tiles must not abort on zoom');
+  assert.ok(mapSrc.includes('/data/eurasia-map.json'), 'map must preload local vector JSON');
+  assert.ok(!mapSrc.includes('leaflet'), 'map must not depend on flaky raster Leaflet tiles');
   assert.ok(mapSrc.indexOf('this.destroyRef.onDestroy') < mapSrc.indexOf('if (reduced)'), 'onDestroy before reduced return');
-  assert.ok(mapSrc.includes('cancelAnimationFrame(this.initRaf)'), 'initial RAF must be cancelled cleanly');
 });

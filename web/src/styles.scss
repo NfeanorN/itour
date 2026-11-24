@@ -1,5 +1,4 @@
 @import 'lenis/dist/lenis.css';
-@import 'leaflet/dist/leaflet.css';
 
 :root {
   --bg: #faf9f6;
@@ -43,9 +42,9 @@
   --r-sm: 12px;
   --r-pill: 999px;
 
-  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-sans: 'Golos Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 *,

@@ -12,7 +12,6 @@ import {
   FOUNDERS,
   HERO_IMAGE,
   HERO_SECONDARY_IMAGE,
-  HOTEL_TIERS,
   INCLUDED,
   INSTAGRAM,
   MOMENTS,
@@ -28,7 +27,6 @@ import {
 import { CityChapter } from '../journey/city-chapter';
 import { JourneyMap } from '../journey/journey-map';
 import { BookingModal } from '../shared/booking-modal';
-import { HotelShowcase } from '../shared/hotel-showcase';
 import { MomentsGallery } from '../shared/moments-gallery';
 
 @Component({
@@ -40,7 +38,6 @@ import { MomentsGallery } from '../shared/moments-gallery';
     CityChapter,
     BookingModal,
     MomentsGallery,
-    HotelShowcase,
     Reveal,
   ],
   templateUrl: './home.html',
@@ -58,7 +55,6 @@ export class Home {
   readonly waves = TOUR_WAVES;
   readonly chapters = CHAPTERS;
   readonly moments = MOMENTS;
-  readonly hotelTiers = HOTEL_TIERS;
   readonly included = INCLUDED;
   readonly excluded = EXCLUDED;
   readonly advantages = ADVANTAGES;
