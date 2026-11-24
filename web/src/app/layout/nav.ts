@@ -1,6 +1,7 @@
-import { afterNextRender, Component, DestroyRef, HostListener, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, HostListener, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/auth';
+import { I18nService } from '../core/i18n';
 import { WHATSAPP_TOURS, whatsappLink } from '../data/tour';
 import { AralaLogo } from '../shared/arala-logo';
 
@@ -14,32 +15,53 @@ import { AralaLogo } from '../shared/arala-logo';
           <app-arala-logo variant="badge" />
         </a>
 
-        <nav class="links" aria-label="Основная навигация">
-          <a routerLink="/" fragment="dates">Даты и цены</a>
-          <a routerLink="/" fragment="route">Маршрут</a>
-          <a routerLink="/" fragment="cities">Города</a>
-          <a routerLink="/" fragment="moments">Живые фото</a>
-          <a routerLink="/guide" routerLinkActive="is-on">Гайд</a>
+        <nav class="links" [attr.aria-label]="i18n.t('Негізгі мәзір', 'Основная навигация')">
+          <a routerLink="/" fragment="dates">{{ i18n.t('Күндер мен баға', 'Даты и цены') }}</a>
+          <a routerLink="/" fragment="route">{{ i18n.t('Маршрут', 'Маршрут') }}</a>
+          <a routerLink="/" fragment="cities">{{ i18n.t('Қалалар', 'Города') }}</a>
+          <a routerLink="/" fragment="moments">{{ i18n.t('Жанды фото', 'Живые фото') }}</a>
+          <a routerLink="/guide" routerLinkActive="is-on">{{ i18n.t('Гайд', 'Гайд') }}</a>
           @if (auth.isAdmin) {
-            <a routerLink="/admin" routerLinkActive="is-on">Админ</a>
+            <a routerLink="/admin" routerLinkActive="is-on">{{ i18n.t('Админ', 'Админ') }}</a>
           }
         </nav>
 
         <div class="actions">
-          <a [href]="waUrl" target="_blank" rel="noreferrer" class="wa-btn">WhatsApp</a>
+          <div class="lang-switch" role="group" [attr.aria-label]="i18n.t('Тілді таңдау', 'Выбор языка')">
+            <button
+              type="button"
+              [class.is-on]="i18n.lang() === 'kk'"
+              (click)="i18n.setLang('kk')"
+            >
+              ҚАЗ
+            </button>
+            <button
+              type="button"
+              [class.is-on]="i18n.lang() === 'ru'"
+              (click)="i18n.setLang('ru')"
+            >
+              РУС
+            </button>
+          </div>
+
+          <a [href]="waUrl()" target="_blank" rel="noreferrer" class="wa-btn">WhatsApp</a>
           @if (auth.user(); as u) {
             <span class="who">{{ u.name }}</span>
-            <button type="button" class="text-link" (click)="auth.logout()">Выйти</button>
+            <button type="button" class="text-link" (click)="auth.logout()">
+              {{ i18n.t('Шығу', 'Выйти') }}
+            </button>
           } @else {
-            <a routerLink="/login" class="text-link">Войти</a>
+            <a routerLink="/login" class="text-link">{{ i18n.t('Кіру', 'Войти') }}</a>
           }
-          <a routerLink="/" fragment="book" class="btn btn--primary btn--sm cta-desk">Записаться</a>
+          <a routerLink="/" fragment="book" class="btn btn--primary btn--sm cta-desk">
+            {{ i18n.t('Жазылу', 'Записаться') }}
+          </a>
 
           <button
             type="button"
             class="burger"
             [attr.aria-expanded]="menuOpen()"
-            aria-label="Открыть меню"
+            [attr.aria-label]="i18n.t('Мәзірді ашу', 'Открыть меню')"
             (click)="toggleMenu($event)"
           >
             <span></span>
@@ -51,26 +73,42 @@ import { AralaLogo } from '../shared/arala-logo';
       @if (menuOpen()) {
         <div class="wrap sheet-host">
           <div class="sheet" (click)="$event.stopPropagation()">
-            <a routerLink="/" fragment="dates" (click)="menuOpen.set(false)">Даты и стоимость</a>
-            <a routerLink="/" fragment="route" (click)="menuOpen.set(false)">Карта маршрута</a>
-            <a routerLink="/" fragment="cities" (click)="menuOpen.set(false)">Города и Альпы</a>
-            <a routerLink="/" fragment="moments" (click)="menuOpen.set(false)">Фото с туров</a>
-            <a routerLink="/" fragment="included" (click)="menuOpen.set(false)">Что включено</a>
-            <a routerLink="/guide" (click)="menuOpen.set(false)">Визовый гайд</a>
+            <a routerLink="/" fragment="dates" (click)="menuOpen.set(false)">
+              {{ i18n.t('Күндер мен бағасы', 'Даты и стоимость') }}
+            </a>
+            <a routerLink="/" fragment="route" (click)="menuOpen.set(false)">
+              {{ i18n.t('Маршрут картасы', 'Карта маршрута') }}
+            </a>
+            <a routerLink="/" fragment="cities" (click)="menuOpen.set(false)">
+              {{ i18n.t('Қалалар және Альпі', 'Города и Альпы') }}
+            </a>
+            <a routerLink="/" fragment="moments" (click)="menuOpen.set(false)">
+              {{ i18n.t('Турдан жанды фотолар', 'Фото с туров') }}
+            </a>
+            <a routerLink="/" fragment="included" (click)="menuOpen.set(false)">
+              {{ i18n.t('Бағаға не кіреді', 'Что включено') }}
+            </a>
+            <a routerLink="/guide" (click)="menuOpen.set(false)">
+              {{ i18n.t('Визалық гайд', 'Визовый гайд') }}
+            </a>
             @if (auth.isAdmin) {
-              <a routerLink="/admin" (click)="menuOpen.set(false)">Админ-панель</a>
+              <a routerLink="/admin" (click)="menuOpen.set(false)">
+                {{ i18n.t('Админ-панель', 'Админ-панель') }}
+              </a>
             }
             <hr />
             @if (auth.user(); as u) {
               <div class="sheet-user">
                 <span>{{ u.name }}</span>
-                <button type="button" (click)="logout()">Выйти</button>
+                <button type="button" (click)="logout()">{{ i18n.t('Шығу', 'Выйти') }}</button>
               </div>
             } @else {
-              <a routerLink="/login" (click)="menuOpen.set(false)">Войти в кабинет</a>
+              <a routerLink="/login" (click)="menuOpen.set(false)">
+                {{ i18n.t('Жеке кабинетке кіру', 'Войти в кабинет') }}
+              </a>
             }
             <a routerLink="/" fragment="book" class="btn btn--primary btn--sm sheet-cta" (click)="menuOpen.set(false)">
-              Записаться в тур
+              {{ i18n.t('Турға жазылу', 'Записаться в тур') }}
             </a>
           </div>
         </div>
@@ -82,7 +120,7 @@ import { AralaLogo } from '../shared/arala-logo';
       position: fixed;
       inset: 0 0 auto;
       z-index: 60;
-      background: rgba(250, 249, 246, 0.86);
+      background: rgba(250, 249, 246, 0.88);
       backdrop-filter: saturate(1.4) blur(14px);
       border-bottom: 1px solid transparent;
       transition:
@@ -92,7 +130,7 @@ import { AralaLogo } from '../shared/arala-logo';
     }
 
     .nav--scrolled {
-      background: rgba(250, 249, 246, 0.94);
+      background: rgba(250, 249, 246, 0.95);
       border-bottom-color: var(--border);
       box-shadow: 0 6px 24px rgba(11, 19, 36, 0.05);
     }
@@ -102,7 +140,7 @@ import { AralaLogo } from '../shared/arala-logo';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
+      gap: 16px;
     }
 
     .brand-link {
@@ -113,8 +151,8 @@ import { AralaLogo } from '../shared/arala-logo';
     .links {
       display: flex;
       align-items: center;
-      gap: 22px;
-      font-size: 14px;
+      gap: 20px;
+      font-size: 13.5px;
       font-weight: 700;
       color: var(--text-muted);
     }
@@ -122,6 +160,7 @@ import { AralaLogo } from '../shared/arala-logo';
     .links a {
       text-decoration: none;
       transition: color 0.15s ease;
+      white-space: nowrap;
     }
 
     .links a:hover,
@@ -132,7 +171,33 @@ import { AralaLogo } from '../shared/arala-logo';
     .actions {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      padding: 3px;
+      border-radius: var(--r-pill);
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+    }
+
+    .lang-switch button {
+      border: 0;
+      border-radius: var(--r-pill);
+      padding: 5px 10px;
+      background: transparent;
+      color: var(--text-subtle);
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .lang-switch button.is-on {
+      background: var(--ink-dark);
+      color: #ffffff;
     }
 
     .wa-btn {
@@ -173,8 +238,8 @@ import { AralaLogo } from '../shared/arala-logo';
 
     .burger {
       display: none;
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       border: 1px solid var(--border);
       background: var(--surface-soft);
@@ -258,7 +323,7 @@ import { AralaLogo } from '../shared/arala-logo';
       background: var(--ruby-hover) !important;
     }
 
-    @media (max-width: 1020px) {
+    @media (max-width: 1080px) {
       .links,
       .who,
       .text-link,
@@ -269,15 +334,28 @@ import { AralaLogo } from '../shared/arala-logo';
         display: inline-flex;
       }
     }
+
+    @media (max-width: 460px) {
+      .wa-btn {
+        display: none;
+      }
+    }
   `,
 })
 export class Nav {
   readonly auth = inject(AuthService);
+  readonly i18n = inject(I18nService);
   readonly scrolled = signal(false);
   readonly menuOpen = signal(false);
-  readonly waUrl = whatsappLink(
-    WHATSAPP_TOURS,
-    'Здравствуйте! Интересует Классический Евротур ARALA. Расскажите подробнее.',
+
+  readonly waUrl = computed(() =>
+    whatsappLink(
+      WHATSAPP_TOURS,
+      this.i18n.t(
+        'Сәлеметсіз бе! ARALA Классикалық Еуротуры қызықтырады. Толығырақ айтып беріңізші.',
+        'Здравствуйте! Интересует Классический Евротур ARALA. Расскажите подробнее.',
+      ),
+    ),
   );
 
   constructor() {

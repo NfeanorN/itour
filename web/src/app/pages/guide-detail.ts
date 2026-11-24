@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ApiService } from '../core/api';
+import { I18nService } from '../core/i18n';
 import { renderMarkdown } from '../core/markdown';
 
 @Component({
@@ -9,10 +10,14 @@ import { renderMarkdown } from '../core/markdown';
   imports: [RouterLink],
   template: `
     <article class="page wrap">
-      <a routerLink="/guide" class="back">← Все разделы гайда</a>
+      <a routerLink="/guide" class="back">{{ i18n.t('← Барлық гайд бөлімдері', '← Все разделы гайда') }}</a>
       @if (html()) {
         <div class="paper">
           <div class="md" [innerHTML]="html()"></div>
+        </div>
+      } @else if (err()) {
+        <div class="paper">
+          <p class="err-msg">{{ i18n.t('Гайдты жүктеу мүмкін болмады.', 'Не удалось загрузить раздел гайда.') }}</p>
         </div>
       }
     </article>
@@ -39,6 +44,12 @@ import { renderMarkdown } from '../core/markdown';
       background: var(--surface);
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
+    }
+
+    .err-msg {
+      margin: 0;
+      color: var(--danger);
+      font-weight: 700;
     }
 
     :host ::ng-deep .md h1 {
@@ -87,12 +98,19 @@ export class GuideDetail {
   private readonly api = inject(ApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
+  readonly i18n = inject(I18nService);
   readonly html = signal<SafeHtml | null>(null);
+  readonly err = signal(false);
 
   constructor() {
     const slug = this.route.snapshot.paramMap.get('slug') ?? '';
-    this.api.guide(slug).subscribe((g) => {
-      this.html.set(this.sanitizer.bypassSecurityTrustHtml(renderMarkdown(g.markdown)));
+    this.api.guide(slug).subscribe({
+      next: (g) => {
+        this.html.set(this.sanitizer.bypassSecurityTrustHtml(renderMarkdown(g.markdown)));
+      },
+      error: () => {
+        this.err.set(true);
+      },
     });
   }
 }

@@ -2,46 +2,76 @@
   <div class="wrap">
     <div class="hero">
       <div class="hero-copy">
-        <span class="country-pill">🇮🇹 ИТАЛИЯ · 🇫🇷 ФРАНЦИЯ · 🇨🇭 ШВЕЙЦАРИЯ</span>
+        <span class="country-pill">
+          {{ i18n.t('🇮🇹 ИТАЛИЯ · 🇫🇷 ФРАНЦИЯ · 🇨🇭 ШВЕЙЦАРИЯ', '🇮🇹 ИТАЛИЯ · 🇫🇷 ФРАНЦИЯ · 🇨🇭 ШВЕЙЦАРИЯ') }}
+        </span>
         <h1>
-          Путешествие мечты<br />
-          <em>по Европе</em> за одну поездку
+          @if (i18n.lang() === 'kk') {
+            Арманыңыздағы<br />
+            <em>Еуропа саяхаты</em> — бір сапарда
+          } @else {
+            Путешествие мечты<br />
+            <em>по Европе</em> за одну поездку
+          }
         </h1>
         <p class="hero-lead">
-          Милан, Венеция, Рим и Ватикан, Париж, Базель, Цюрих — и полноценная программа в Швейцарских Альпах:
-          Лаутербруннен и высокогорный Мюррен.
+          {{
+            i18n.t(
+              'Милан, Венеция, Рим және Ватикан, Париж, Базель, Цюрих — сондай-ақ Швейцария Альпі тауларындағы толық бағдарлама: Лаутербруннен және биік таулы Мюррен.',
+              'Милан, Венеция, Рим и Ватикан, Париж, Базель, Цюрих — и полноценная программа в Швейцарских Альпах: Лаутербруннен и высокогорный Мюррен.'
+            )
+          }}
         </p>
 
         <div class="hero-badges">
-          <span>9–11 дней</span>
-          <span>Авторская группа</span>
-          <span class="badge-gold">от 1 190 000 ₸ / чел.</span>
-          <span>✈ Перелёты + виза включены</span>
+          <span>{{ i18n.t('9–11 күн', '9–11 дней') }}</span>
+          <span>{{ i18n.t('Авторлық топ', 'Авторская группа') }}</span>
+          <span class="badge-gold">
+            {{ i18n.t('1 190 000 ₸ бастап / 1 адам', 'от 1 190 000 ₸ / чел.') }}
+          </span>
+          <span>{{ i18n.t('✈ Ұшақ + виза кіреді', '✈ Перелёты + виза включены') }}</span>
         </div>
 
         <div class="hero-actions">
-          <button type="button" class="btn btn--gold" (click)="openBooking()">Забронировать место</button>
-          <a href="#route" class="btn btn--ghost-light">Смотреть маршрут</a>
+          <button type="button" class="btn btn--gold" (click)="openBooking()">
+            {{ i18n.t('Орын брондау', 'Забронировать место') }}
+          </button>
+          <a href="#route" class="btn btn--ghost-light">
+            {{ i18n.t('Маршрутты көру', 'Смотреть маршрут') }}
+          </a>
         </div>
 
         <p class="hero-note">
-          200+ счастливых туристов · 100+ виз · Турлидеры Ернұр и Қайрат рядом 24/7
+          {{
+            i18n.t(
+              '200+ бақытты турист · 100+ виза · Ернұр мен Қайрат 24/7 қасыңызда',
+              '200+ счастливых туристов · 100+ виз · Турлидеры Ернұр и Қайрат рядом 24/7'
+            )
+          }}
         </p>
       </div>
 
       <div class="hero-visual">
         <div class="hero-frame">
-          <img [src]="heroImage" alt="Швейцарские Альпы и долина Лаутербруннен" referrerpolicy="no-referrer" />
+          <img
+            [src]="heroImage"
+            [alt]="i18n.t('Швейцария Альпі таулары және Лаутербруннен алқабы', 'Швейцарские Альпы и долина Лаутербруннен')"
+            referrerpolicy="no-referrer"
+          />
           <div class="hero-frame-tag">
-            <span>Особенная часть тура</span>
-            <strong>Швейцарские Альпы · 1 650 м</strong>
+            <span>{{ i18n.t('Турдың ерекше бөлігі', 'Особенная часть тура') }}</span>
+            <strong>{{ i18n.t('Швейцария Альпісі · 1 650 м', 'Швейцарские Альпы · 1 650 м') }}</strong>
           </div>
         </div>
         <div class="hero-float">
-          <img [src]="heroSecondary" alt="Париж, Эйфелева башня" referrerpolicy="no-referrer" />
+          <img
+            [src]="heroSecondary"
+            [alt]="i18n.t('Париж, Эйфель мұнарасы', 'Париж, Эйфелева башня')"
+            referrerpolicy="no-referrer"
+          />
           <div>
-            <strong>3 страны · 8 городов</strong>
-            <span>Вылет из Алматы</span>
+            <strong>{{ i18n.t('3 ел · 8 қала', '3 страны · 8 городов') }}</strong>
+            <span>{{ i18n.t('Алматыдан ұшу', 'Вылет из Алматы') }}</span>
           </div>
         </div>
       </div>
@@ -52,11 +82,20 @@
 <section class="sec" id="dates" reveal>
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">Даты и стоимость · Классический Евротур</p>
-      <h2 class="sec-title">Выберите удобные даты <em>поездки</em></h2>
+      <p class="sec-kicker">
+        {{ i18n.t('Күндер мен бағасы · Классикалық Еуротур', 'Даты и стоимость · Классический Евротур') }}
+      </p>
+      <h2 class="sec-title">
+        {{ i18n.t('Сапарға ыңғайлы', 'Выберите удобные даты') }}
+        <em>{{ i18n.t('күндерді таңдаңыз', 'поездки') }}</em>
+      </h2>
       <p class="sec-lead">
-        Стоимость указана за 1 человека — перелёты, отели 3–4★, трансферы и визовое сопровождение уже внутри. Нажмите на
-        дату, чтобы забронировать место.
+        {{
+          i18n.t(
+            'Баға 1 адамға көрсетілген — ұшақ билеттері, 3–4★ қонақ үйлер, трансферлер және визалық сүйемелдеу бағаға кіреді. Орын брондау үшін қалаған күнді басыңыз.',
+            'Стоимость указана за 1 человека — перелёты, отели 3–4★, трансферы и визовое сопровождение уже внутри. Нажмите на дату, чтобы забронировать место.'
+          )
+        }}
       </p>
     </header>
 
@@ -64,13 +103,13 @@
       @for (w of waves; track w.id) {
         <button type="button" class="wave-card" (click)="openBooking(w)">
           <div class="wave-top">
-            <span class="wave-tag">{{ w.tag }}</span>
-            <span class="wave-dur">{{ w.duration }}</span>
+            <span class="wave-tag">{{ i18n.pick(w.tag) }}</span>
+            <span class="wave-dur">{{ i18n.pick(w.duration) }}</span>
           </div>
-          <strong class="wave-dates">{{ w.dates }}</strong>
+          <strong class="wave-dates">{{ i18n.pick(w.dates) }}</strong>
           <div class="wave-bottom">
             <span class="wave-price">{{ w.price }}</span>
-            <span class="wave-cta">Выбрать →</span>
+            <span class="wave-cta">{{ i18n.t('Таңдау →', 'Выбрать →') }}</span>
           </div>
         </button>
       }
@@ -78,23 +117,41 @@
 
     <div class="bento-details">
       <article class="detail-card">
-        <span class="k">Проживание</span>
-        <h3>Отели 3–4★ по маршруту</h3>
-        <p>Проверенные городские и альпийские отели с удобным расположением, чтобы не тратить время на дорогу.</p>
+        <span class="k">{{ i18n.t('Тұру', 'Проживание') }}</span>
+        <h3>{{ i18n.t('Маршрут бойынша 3–4★ қонақ үйлер', 'Отели 3–4★ по маршруту') }}</h3>
+        <p>
+          {{
+            i18n.t(
+              'Жолға артық уақыт кетпес үшін орталыққа ыңғайлы тексерілген қалалық және альпілік қонақ үйлерді таңдаймыз.',
+              'Проверенные городские и альпийские отели с удобным расположением, чтобы не тратить время на дорогу.'
+            )
+          }}
+        </p>
       </article>
 
       <article class="detail-card">
-        <span class="k">Логистика</span>
-        <h3>Перелёты и скоростные поезда</h3>
-        <p>Авиабилеты туда и обратно, ручная кладь до 5–7 кг и все переезды между странами и городами уже в туре.</p>
+        <span class="k">{{ i18n.t('Логистика', 'Логистика') }}</span>
+        <h3>{{ i18n.t('Ұшақтар мен жылдам пойыздар', 'Перелёты и скоростные поезда') }}</h3>
+        <p>
+          {{
+            i18n.t(
+              'Бару-қайту ұшақ билеттері, 5–7 кг дейінгі қол жүгі және елдер мен қалалар арасындағы барлық трансферлер кіреді.',
+              'Авиабилеты туда и обратно, ручная кладь до 5–7 кг и все переезды между странами и городами уже в туре.'
+            )
+          }}
+        </p>
       </article>
 
       <article class="detail-card detail-card--accent">
-        <span class="k">Бонус ARALA</span>
-        <h3>Бесплатное визовое сопровождение</h3>
+        <span class="k">{{ i18n.t('ARALA бонусы', 'Бонус ARALA') }}</span>
+        <h3>{{ i18n.t('Тегін визалық сүйемелдеу', 'Бесплатное визовое сопровождение') }}</h3>
         <p>
-          Помогаем собрать пакет документов и пройти подачу на шенген. После оплаты открываем личный визовый гайд.
-          Количество мест в группе ограничено.
+          {{
+            i18n.t(
+              'Шенген визасына құжаттарды дайындап, тапсыруға толық көмектесеміз. Төлемнен кейін жеке визалық гайд ашылады. Авторлық топтағы орын саны шектеулі.',
+              'Помогаем собрать пакет документов и пройти подачу на шенген. После оплаты открываем личный визовый гайд. Количество мест в группе ограничено.'
+            )
+          }}
         </p>
       </article>
     </div>
@@ -108,16 +165,19 @@
 <section class="sec" id="cities">
   <div class="wrap">
     <header class="cities-head" reveal>
-      <p class="route-line">{{ routeSummary }}</p>
+      <p class="route-line">{{ i18n.pick(routeSummary) }}</p>
       <div class="cities-bar">
         <div class="sec-head" style="margin-bottom: 0">
-          <p class="sec-kicker">Программа по странам</p>
-          <h2 class="sec-title">Города и локации <em>маршрута</em></h2>
+          <p class="sec-kicker">{{ i18n.t('Елдер бойынша бағдарлама', 'Программа по странам') }}</p>
+          <h2 class="sec-title">
+            {{ i18n.t('Маршруттағы қалалар мен', 'Города и локации') }}
+            <em>{{ i18n.t('локациялар', 'маршрута') }}</em>
+          </h2>
         </div>
 
-        <div class="country-tabs" role="tablist" aria-label="Фильтр по странам">
+        <div class="country-tabs" role="tablist" [attr.aria-label]="i18n.t('Елдер сүзгісі', 'Фильтр по странам')">
           <button type="button" [class.is-on]="countryFilter() === 'all'" (click)="countryFilter.set('all')">
-            Все (6)
+            {{ i18n.t('Барлығы (6)', 'Все (6)') }}
           </button>
           <button type="button" [class.is-on]="countryFilter() === 'italy'" (click)="countryFilter.set('italy')">
             🇮🇹 Италия
@@ -145,11 +205,20 @@
 <section class="sec sec--soft" id="moments" reveal>
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">Живые эмоции · Без стоковых постановок</p>
-      <h2 class="sec-title">Кадры наших туристов <em>из поездок</em></h2>
+      <p class="sec-kicker">
+        {{ i18n.t('Шынайы эмоциялар · Сток суреттерсіз', 'Живые эмоции · Без стоковых постановок') }}
+      </p>
+      <h2 class="sec-title">
+        {{ i18n.t('Туристеріміздің', 'Кадры наших туристов') }}
+        <em>{{ i18n.t('сапардағы сәттері', 'из поездок') }}</em>
+      </h2>
       <p class="sec-lead">
-        Реальные фотографии групп ARALA из Милана, Венеции, Рима, Ватикана, Парижа, Цюриха и Швейцарских Альп. Нажмите
-        на любой кадр, чтобы рассмотреть ближе.
+        {{
+          i18n.t(
+            'ARALA топтарының Милан, Венеция, Рим, Ватикан, Париж, Цюрих және Швейцария Альпісіндегі шынайы фотолары. Жақыннан көру үшін кез келген суретті басыңыз.',
+            'Реальные фотографии групп ARALA из Милана, Венеции, Рима, Ватикана, Парижа, Цюриха и Швейцарских Альп. Нажмите на любой кадр, чтобы рассмотреть ближе.'
+          )
+        }}
       </p>
     </header>
 
@@ -160,10 +229,18 @@
 <section class="sec" id="hotels" reveal>
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">Комфорт 3–4★</p>
-      <h2 class="sec-title">Где мы живём <em>в путешествии</em></h2>
+      <p class="sec-kicker">{{ i18n.t('3–4★ жайлылық', 'Комфорт 3–4★') }}</p>
+      <h2 class="sec-title">
+        {{ i18n.t('Сапарда қайда', 'Где мы живём') }}
+        <em>{{ i18n.t('тұрамыз', 'в путешествии') }}</em>
+      </h2>
       <p class="sec-lead">
-        Показываем формат и уровень размещения в каждой стране — переключите миниатюры, чтобы увидеть атмосферу номеров.
+        {{
+          i18n.t(
+            'Әр елдегі қонақ үй форматы мен деңгейін көрсетеміз — бөлмелер атмосферасын көру үшін төмендегі фотоларды ауыстырыңыз.',
+            'Показываем формат и уровень размещения в каждой стране — переключите миниатюры, чтобы увидеть атмосферу номеров.'
+          )
+        }}
       </p>
     </header>
 
@@ -174,25 +251,28 @@
 <section class="sec" id="included" reveal>
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">Прозрачные условия</p>
-      <h2 class="sec-title">Что входит <em>в стоимость</em></h2>
+      <p class="sec-kicker">{{ i18n.t('Ашық шарттар', 'Прозрачные условия') }}</p>
+      <h2 class="sec-title">
+        {{ i18n.t('Тур бағасына', 'Что входит') }}
+        <em>{{ i18n.t('не кіреді', 'в стоимость') }}</em>
+      </h2>
     </header>
 
     <div class="compare">
       <article class="comp-card comp-card--in">
-        <h3>Включено в тур</h3>
+        <h3>{{ i18n.t('Бағаға кіреді', 'Включено в тур') }}</h3>
         <ul>
-          @for (item of included; track item) {
-            <li><span class="ico-in" aria-hidden="true">✓</span>{{ item }}</li>
+          @for (item of included; track item.ru) {
+            <li><span class="ico-in" aria-hidden="true">✓</span>{{ i18n.pick(item) }}</li>
           }
         </ul>
       </article>
 
       <article class="comp-card comp-card--out">
-        <h3>Не входит в стоимость</h3>
+        <h3>{{ i18n.t('Бағаға кірмейді', 'Не входит в стоимость') }}</h3>
         <ul>
-          @for (item of excluded; track item) {
-            <li><span class="ico-out" aria-hidden="true">✕</span>{{ item }}</li>
+          @for (item of excluded; track item.ru) {
+            <li><span class="ico-out" aria-hidden="true">✕</span>{{ i18n.pick(item) }}</li>
           }
         </ul>
       </article>
@@ -203,31 +283,34 @@
 <section class="sec" id="why" reveal>
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">6 причин выбрать ARALA</p>
-      <h2 class="sec-title">Почему стоит поехать <em>именно с нами</em></h2>
+      <p class="sec-kicker">{{ i18n.t('ARALA-ны таңдаудың 6 себебі', '6 причин выбрать ARALA') }}</p>
+      <h2 class="sec-title">
+        {{ i18n.t('Неліктен дәл біздің', 'Почему стоит поехать') }}
+        <em>{{ i18n.t('Еуротурды таңдау керек', 'именно с нами') }}</em>
+      </h2>
     </header>
 
     <div class="adv-grid">
       @for (adv of advantages; track adv.num) {
         <article class="adv-card">
           <span class="adv-num">{{ adv.num }}</span>
-          <h3>{{ adv.title }}</h3>
-          <p>{{ adv.text }}</p>
+          <h3>{{ i18n.pick(adv.title) }}</h3>
+          <p>{{ i18n.pick(adv.text) }}</p>
         </article>
       }
     </div>
 
     <div class="founders">
       <div class="founders-copy">
-        <p class="f-kicker">{{ founders.role }}</p>
-        <h3>{{ founders.names }}</h3>
-        <p>{{ founders.bio }}</p>
+        <p class="f-kicker">{{ i18n.pick(founders.role) }}</p>
+        <h3>{{ i18n.pick(founders.names) }}</h3>
+        <p>{{ i18n.pick(founders.bio) }}</p>
       </div>
       <div class="founders-stats">
-        @for (s of founders.stats; track s.label) {
+        @for (s of founders.stats; track s.value) {
           <div class="f-stat">
             <strong>{{ s.value }}</strong>
-            <span>{{ s.label }}</span>
+            <span>{{ i18n.pick(s.label) }}</span>
           </div>
         }
       </div>
@@ -238,21 +321,24 @@
 <section class="sec sec--soft" id="more" reveal>
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">Также в ARALA</p>
-      <h2 class="sec-title">Другие направления <em>и визы</em></h2>
+      <p class="sec-kicker">{{ i18n.t('Сондай-ақ ARALA-да', 'Также в ARALA') }}</p>
+      <h2 class="sec-title">
+        {{ i18n.t('Басқа бағыттар', 'Другие направления') }}
+        <em>{{ i18n.t('және виза', 'и визы') }}</em>
+      </h2>
     </header>
 
     <div class="offerings">
       @for (o of offerings; track o.id) {
         <article class="off-card">
-          <span class="off-tag">{{ o.tag }}</span>
-          <h3>{{ o.title }}</h3>
-          <p class="off-meta">{{ o.meta }}</p>
-          <p class="off-desc">{{ o.description }}</p>
+          <span class="off-tag">{{ i18n.pick(o.tag) }}</span>
+          <h3>{{ i18n.pick(o.title) }}</h3>
+          <p class="off-meta">{{ i18n.pick(o.meta) }}</p>
+          <p class="off-desc">{{ i18n.pick(o.description) }}</p>
           <div class="off-foot">
-            <strong>{{ o.price }}</strong>
-            <a [href]="offeringWa(o.phone, o.waText)" target="_blank" rel="noreferrer" class="off-link">
-              Узнать в WhatsApp →
+            <strong>{{ i18n.pick(o.price) }}</strong>
+            <a [href]="offeringWa(o.phone, i18n.pick(o.waText))" target="_blank" rel="noreferrer" class="off-link">
+              {{ i18n.t('WhatsApp-тан білу →', 'Узнать в WhatsApp →') }}
             </a>
           </div>
         </article>
@@ -261,14 +347,25 @@
 
     <div class="guide-banner">
       <div>
-        <span class="g-kicker">Личный кабинет участника</span>
-        <h3>Закрытый визовый гайд открывается после оплаты</h3>
+        <span class="g-kicker">{{ i18n.t('Қатысушының жеке кабинеті', 'Личный кабинет участника') }}</span>
+        <h3>
+          {{
+            i18n.t(
+              'Жабық визалық гайд тур төленгеннен кейін ашылады',
+              'Закрытый визовый гайд открывается после оплаты'
+            )
+          }}
+        </h3>
         <p>
-          Шенген с нуля, пакет документов, подача в Италию, разбор сборов под ручную кладь 5–7 кг и Альпы — всё собрано
-          по шагам в вашем кабинете.
+          {{
+            i18n.t(
+              'Шенгенді нөлден бастау, құжаттар тізімі, Италияға тапсыру, 5–7 кг қол жүгі мен Альпіге дайындық — бәрі жеке кабинетіңізде қадам-қадаммен жиналған.',
+              'Шенген с нуля, пакет документов, подача в Италию, разбор сборов под ручную кладь 5–7 кг и Альпы — всё собрано по шагам в вашем кабинете.'
+            )
+          }}
         </p>
       </div>
-      <a routerLink="/guide" class="btn btn--dark">Перейти в гайд</a>
+      <a routerLink="/guide" class="btn btn--dark">{{ i18n.t('Гайдқа өту', 'Перейти в гайд') }}</a>
     </div>
   </div>
 </section>
@@ -277,37 +374,59 @@
   <div class="wrap">
     <div class="book-box">
       <div class="book-copy">
-        <p class="sec-kicker">Запись в группу</p>
-        <h2 class="sec-title">Готовы увидеть Европу <em>по-настоящему?</em></h2>
+        <p class="sec-kicker">{{ i18n.t('Топқа жазылу', 'Запись в группу') }}</p>
+        <h2 class="sec-title">
+          {{ i18n.t('Еуропаны мүлдем басқа қырынан', 'Готовы увидеть Европу') }}
+          <em>{{ i18n.t('көруге дайынсыз ба?', 'по-настоящему?') }}</em>
+        </h2>
         <p class="book-lead">
-          Оставьте заявку — ответим в тот же день, расскажем про свободные места и поможем начать подготовку к визе.
-          Или напишите напрямую в WhatsApp.
+          {{
+            i18n.t(
+              'Өтінім қалдырыңыз — сол күні жауап беріп, бос орындар мен виза дайындығы туралы толық айтып береміз. Немесе бірден WhatsApp-қа жазыңыз.',
+              'Оставьте заявку — ответим в тот же день, расскажем про свободные места и поможем начать подготовку к визе. Или напишите напрямую в WhatsApp.'
+            )
+          }}
         </p>
 
         <div class="book-links">
-          <a [href]="waDirectUrl" target="_blank" rel="noreferrer" class="btn btn--dark">WhatsApp · +7 706 608 9508</a>
+          <a [href]="waDirectUrl()" target="_blank" rel="noreferrer" class="btn btn--dark">
+            WhatsApp · +7 706 608 9508
+          </a>
           <a [href]="ig" target="_blank" rel="noreferrer" class="btn btn--ghost">Instagram @arala.tours</a>
         </div>
         <p class="book-visa-note">
-          Нужна только виза или индивидуальный маршрут?
-          <a [href]="waVisaUrl" target="_blank" rel="noreferrer">Напишите на +7 777 205 7252 →</a>
+          {{ i18n.t('Тек виза немесе жеке маршрут керек пе?', 'Нужна только виза или индивидуальный маршрут?') }}
+          <a [href]="waVisaUrl()" target="_blank" rel="noreferrer">
+            {{ i18n.t('+7 777 205 7252 нөміріне жазыңыз →', 'Напишите на +7 777 205 7252 →') }}
+          </a>
         </p>
       </div>
 
       @if (sent()) {
         <div class="book-thanks">
-          <span class="ok-badge">✓ Заявка отправлена</span>
-          <h3>Скоро свяжемся с вами!</h3>
-          <p>Если хотите получить программу и свободные места моментально — откройте чат в WhatsApp:</p>
+          <span class="ok-badge">✓ {{ i18n.t('Өтінім жіберілді', 'Заявка отправлена') }}</span>
+          <h3>{{ i18n.t('Жақын арада хабарласамыз!', 'Скоро свяжемся с вами!') }}</h3>
+          <p>
+            {{
+              i18n.t(
+                'Бағдарлама мен бос орындарды бірден алу үшін WhatsApp чатын ашыңыз:',
+                'Если хотите получить программу и свободные места моментально — откройте чат в WhatsApp:'
+              )
+            }}
+          </p>
           <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--primary">
-            Продублировать в WhatsApp
+            {{ i18n.t('WhatsApp-қа қайталау', 'Продублировать в WhatsApp') }}
           </a>
         </div>
       } @else {
         <form class="book-form" [formGroup]="form" (ngSubmit)="submit()">
           <label>
-            Ваше имя
-            <input formControlName="name" placeholder="Как к вам обращаться" autocomplete="name" />
+            {{ i18n.t('Есіміңіз', 'Ваше имя') }}
+            <input
+              formControlName="name"
+              [placeholder]="i18n.t('Сізге қалай хабарласайық?', 'Как к вам обращаться')"
+              autocomplete="name"
+            />
           </label>
           <div class="two">
             <label>
@@ -320,28 +439,38 @@
             </label>
           </div>
           <label>
-            Даты Классического Евротура
-            <select formControlName="wave">
+            {{ i18n.t('Классикалық Еуротур күндері', 'Даты Классического Евротура') }}
+            <select formControlName="waveId">
               @for (w of waves; track w.id) {
-                <option [value]="w.dates + ' (' + w.price + ')'">
-                  {{ w.dates }} — {{ w.price }} ({{ w.duration }})
+                <option [value]="w.id">
+                  {{ i18n.pick(w.dates) }} — {{ w.price }} ({{ i18n.pick(w.duration) }})
                 </option>
               }
-              <option value="Помогите выбрать даты">Помогите выбрать даты</option>
+              <option value="help">{{ i18n.t('Күн таңдауға көмектесіңізші', 'Помогите выбрать даты') }}</option>
             </select>
           </label>
           <label>
-            Сообщение
-            <textarea formControlName="message" rows="3"></textarea>
+            {{ i18n.t('Хабарлама', 'Сообщение') }}
+            <textarea
+              formControlName="message"
+              rows="3"
+              [placeholder]="i18n.t('ARALA Классикалық Еуротурына барғым келеді', 'Хочу в Классический Евротур ARALA')"
+            ></textarea>
           </label>
           @if (err()) {
             <p class="form-err">{{ err() }}</p>
           }
           <div class="form-actions">
             <button type="submit" class="btn btn--primary" [disabled]="sending()">
-              {{ sending() ? 'Отправляем…' : 'Оставить заявку' }}
+              {{
+                sending()
+                  ? i18n.t('Жіберілуде…', 'Отправляем…')
+                  : i18n.t('Өтінім қалдыру', 'Оставить заявку')
+              }}
             </button>
-            <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--ghost">Написать в WhatsApp</a>
+            <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--ghost">
+              {{ i18n.t('WhatsApp-қа жазу', 'Написать в WhatsApp') }}
+            </a>
           </div>
         </form>
       }

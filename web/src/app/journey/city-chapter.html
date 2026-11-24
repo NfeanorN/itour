@@ -1,30 +1,42 @@
 <article class="chapter" [class.chapter--featured]="chapter().featured" [id]="chapter().id" reveal>
   <header class="head">
     <div class="head-copy">
-      <p class="kicker">{{ chapter().flag }} {{ chapter().kicker }}</p>
-      <h3>{{ chapter().title }}</h3>
-      <p class="subtitle">{{ chapter().subtitle }}</p>
-      <p class="story">{{ chapter().story }}</p>
+      <p class="kicker">{{ chapter().flag }} {{ i18n.pick(chapter().kicker) }}</p>
+      <h3>{{ i18n.pick(chapter().title) }}</h3>
+      <p class="subtitle">{{ i18n.pick(chapter().subtitle) }}</p>
+      <p class="story">{{ i18n.pick(chapter().story) }}</p>
     </div>
 
-    <div class="chips" role="group" [attr.aria-label]="'Фильтр мест: ' + chapter().title">
-      <button type="button" [class.on]="filter() === 'all'" (click)="filter.set('all')">Все</button>
-      <button type="button" [class.on]="filter() === 'sight'" (click)="filter.set('sight')">Места</button>
-      <button type="button" [class.on]="filter() === 'food'" (click)="filter.set('food')">Атмосфера</button>
+    <div
+      class="chips"
+      role="group"
+      [attr.aria-label]="i18n.t('Орындар сүзгісі: ', 'Фильтр мест: ') + i18n.pick(chapter().title)"
+    >
+      <button type="button" [class.on]="filter() === 'all'" (click)="filter.set('all')">
+        {{ i18n.t('Барлығы', 'Все') }}
+      </button>
+      <button type="button" [class.on]="filter() === 'sight'" (click)="filter.set('sight')">
+        {{ i18n.t('Орындар', 'Места') }}
+      </button>
+      <button type="button" [class.on]="filter() === 'food'" (click)="filter.set('food')">
+        {{ i18n.t('Атмосфера', 'Атмосфера') }}
+      </button>
     </div>
   </header>
 
   <div class="cards" [class.cards--four]="places().length === 4">
-    @for (p of places(); track p.title) {
+    @for (p of places(); track p.location + p.image) {
       <figure class="card">
         <div class="media">
-          <img [src]="p.image" [alt]="p.title" loading="lazy" referrerpolicy="no-referrer" />
-          <span class="kind">{{ p.kind === 'food' ? 'Атмосфера' : 'Локация' }}</span>
+          <img [src]="p.image" [alt]="i18n.pick(p.title)" loading="lazy" referrerpolicy="no-referrer" />
+          <span class="kind">
+            {{ p.kind === 'food' ? i18n.t('Атмосфера', 'Атмосфера') : i18n.t('Локация', 'Локация') }}
+          </span>
         </div>
         <figcaption>
           <span class="loc">{{ p.location }}</span>
-          <strong>{{ p.title }}</strong>
-          <p>{{ p.caption }}</p>
+          <strong>{{ i18n.pick(p.title) }}</strong>
+          <p>{{ i18n.pick(p.caption) }}</p>
         </figcaption>
       </figure>
     }

@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth';
+import { I18nService } from '../core/i18n';
 import { AralaLogo } from '../shared/arala-logo';
 
 @Component({
@@ -12,14 +13,26 @@ import { AralaLogo } from '../shared/arala-logo';
     <section class="page">
       <div class="card">
         <app-arala-logo variant="badge" />
-        <h1>Личный кабинет</h1>
+        <h1>{{ i18n.t('Жеке кабинет', 'Личный кабинет') }}</h1>
         @if (locked()) {
           <p class="note">
-            Визовый гайд ARALA открывается после оплаты тура. Мы создаём аккаунт вручную и присылаем доступ. Нет логина
-            — <a routerLink="/" fragment="book">оставьте заявку</a>.
+            {{
+              i18n.t(
+                'ARALA визалық гайды турды төлегеннен кейін ашылады. Аккаунтты біз өзіміз жасап, кіру деректерін жібереміз. Логиніңіз жоқ болса —',
+                'Визовый гайд ARALA открывается после оплаты тура. Мы создаём аккаунт вручную и присылаем доступ. Нет логина —'
+              )
+            }}
+            <a routerLink="/" fragment="book">{{ i18n.t('өтінім қалдырыңыз', 'оставьте заявку') }}</a>.
           </p>
         } @else {
-          <p class="note">Доступ выдаём участникам тура после оплаты. Самостоятельно зарегистрироваться нельзя.</p>
+          <p class="note">
+            {{
+              i18n.t(
+                'Кіру деректерін тур қатысушыларына төлемнен кейін береміз. Өз бетінше тіркелу қарастырылмаған.',
+                'Доступ выдаём участникам тура после оплаты. Самостоятельно зарегистрироваться нельзя.'
+              )
+            }}
+          </p>
         }
 
         <form [formGroup]="form" (ngSubmit)="submit()">
@@ -28,18 +41,18 @@ import { AralaLogo } from '../shared/arala-logo';
             <input formControlName="email" type="email" autocomplete="username" placeholder="you@example.com" />
           </label>
           <label>
-            Пароль
+            {{ i18n.t('Құпия сөз', 'Пароль') }}
             <input formControlName="password" type="password" autocomplete="current-password" placeholder="••••••••" />
           </label>
           @if (err()) {
             <p class="err">{{ err() }}</p>
           }
           <button type="submit" class="btn btn--primary" [disabled]="busy()">
-            {{ busy() ? 'Входим…' : 'Продолжить' }}
+            {{ busy() ? i18n.t('Кіруде…', 'Входим…') : i18n.t('Жалғастыру', 'Продолжить') }}
           </button>
         </form>
 
-        <a routerLink="/" class="back">← Вернуться на главную</a>
+        <a routerLink="/" class="back">{{ i18n.t('← Басты бетке оралу', '← Вернуться на главную') }}</a>
       </div>
     </section>
   `,
@@ -135,6 +148,7 @@ export class Login {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
 
   readonly err = signal('');
   readonly busy = signal(false);
@@ -151,7 +165,7 @@ export class Login {
   submit() {
     this.err.set('');
     if (this.form.invalid) {
-      this.err.set('Введите корректный email и пароль');
+      this.err.set(this.i18n.t('Дұрыс email мен құпия сөзді енгізіңіз', 'Введите корректный email и пароль'));
       return;
     }
     this.busy.set(true);
@@ -169,11 +183,16 @@ export class Login {
         }
         this.busy.set(false);
         this.locked.set(true);
-        this.err.set('Аккаунт есть, но доступ к гайду ещё закрыт. Напишите нам в WhatsApp.');
+        this.err.set(
+          this.i18n.t(
+            'Аккаунт бар, бірақ гайд әлі ашылмаған. Бізге WhatsApp-қа жазыңыз.',
+            'Аккаунт есть, но доступ к гайду ещё закрыт. Напишите нам в WhatsApp.',
+          ),
+        );
       },
       error: (e: HttpErrorResponse) => {
         this.busy.set(false);
-        this.err.set(e.error?.error ?? 'Не удалось войти');
+        this.err.set(e.error?.error ?? this.i18n.t('Кіру сәтсіз аяқталды', 'Не удалось войти'));
       },
     });
   }

@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../core/api';
+import { I18nService } from '../core/i18n';
 import { GuideCard } from '../core/models';
 
 @Component({
@@ -9,11 +10,18 @@ import { GuideCard } from '../core/models';
   template: `
     <section class="page wrap">
       <header class="sec-head">
-        <p class="sec-kicker">Только для участников ARALA</p>
-        <h1 class="sec-title">Визовый гайд <em>и сборы</em></h1>
+        <p class="sec-kicker">{{ i18n.t('Тек ARALA қатысушылары үшін', 'Только для участников ARALA') }}</p>
+        <h1 class="sec-title">
+          {{ i18n.t('Визалық гайд', 'Визовый гайд') }}
+          <em>{{ i18n.t('және дайындық', 'и сборы') }}</em>
+        </h1>
         <p class="sec-lead">
-          Шенген, пакет документов, подача в Италию и подготовка к Классическому Евротуру. Читайте по порядку — так
-          подготовка пройдёт спокойно и без ошибок.
+          {{
+            i18n.t(
+              'Шенген, құжаттар пакеті, Италияға тапсыру және Классикалық Еуротурға дайындық. Ретімен оқыңыз — сонда бәрі жеңіл әрі қатесіз өтеді.',
+              'Шенген, пакет документов, подача в Италию и подготовка к Классическому Евротуру. Читайте по порядку — так подготовка пройдёт спокойно и без ошибок.'
+            )
+          }}
         </p>
       </header>
 
@@ -110,6 +118,7 @@ import { GuideCard } from '../core/models';
 })
 export class Guides {
   private readonly api = inject(ApiService);
+  readonly i18n = inject(I18nService);
   readonly guides = signal<GuideCard[]>([]);
 
   constructor() {

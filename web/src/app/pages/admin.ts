@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../core/api';
+import { I18nService } from '../core/i18n';
 import { Lead, User } from '../core/models';
 
 @Component({
@@ -10,19 +11,34 @@ import { Lead, User } from '../core/models';
   template: `
     <section class="page wrap">
       <header class="sec-head">
-        <p class="sec-kicker">ARALA · Управление группой</p>
-        <h1 class="sec-title">Админ-панель</h1>
-        <p class="sec-lead">Создайте аккаунт участнику после оплаты — и ему сразу откроется визовый гайд.</p>
+        <p class="sec-kicker">{{ i18n.t('ARALA · Топты басқару', 'ARALA · Управление группой') }}</p>
+        <h1 class="sec-title">{{ i18n.t('Админ-панель', 'Админ-панель') }}</h1>
+        <p class="sec-lead">
+          {{
+            i18n.t(
+              'Төлемнен кейін қатысушыға аккаунт ашыңыз — оған бірден визалық гайд ашылады.',
+              'Создайте аккаунт участнику после оплаты — и ему сразу откроется визовый гайд.'
+            )
+          }}
+        </p>
       </header>
 
       <div class="panel">
-        <h2>Новый участник</h2>
+        <h2>{{ i18n.t('Жаңа қатысушы', 'Новый участник') }}</h2>
         <form [formGroup]="form" (ngSubmit)="create()">
-          <input formControlName="name" placeholder="Имя" />
+          <input formControlName="name" [placeholder]="i18n.t('Есімі', 'Имя')" />
           <input formControlName="email" placeholder="Email" />
-          <input formControlName="password" placeholder="Пароль от 8 символов" />
-          <label class="chk"><input type="checkbox" formControlName="tourAccess" /> Доступ к визовому гайду</label>
-          <button type="submit" class="btn btn--primary btn--sm">Создать аккаунт</button>
+          <input
+            formControlName="password"
+            [placeholder]="i18n.t('8 таңбадан кем емес құпия сөз', 'Пароль от 8 символов')"
+          />
+          <label class="chk">
+            <input type="checkbox" formControlName="tourAccess" />
+            {{ i18n.t('Визалық гайдқа рұқсат', 'Доступ к визовому гайду') }}
+          </label>
+          <button type="submit" class="btn btn--primary btn--sm">
+            {{ i18n.t('Аккаунт құру', 'Создать аккаунт') }}
+          </button>
           @if (msg()) {
             <p class="msg">{{ msg() }}</p>
           }
@@ -30,15 +46,15 @@ import { Lead, User } from '../core/models';
       </div>
 
       <div class="panel">
-        <h2>Путешественники ({{ users().length }})</h2>
+        <h2>{{ i18n.t('Саяхатшылар', 'Путешественники') }} ({{ users().length }})</h2>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Имя</th>
+                <th>{{ i18n.t('Есімі', 'Имя') }}</th>
                 <th>Email</th>
-                <th>Роль</th>
-                <th>Гайд</th>
+                <th>{{ i18n.t('Рөлі', 'Роль') }}</th>
+                <th>{{ i18n.t('Гайд', 'Гайд') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -49,7 +65,7 @@ import { Lead, User } from '../core/models';
                   <td><span class="role">{{ u.role }}</span></td>
                   <td>
                     <button type="button" class="toggle" [class.is-on]="u.tourAccess" (click)="toggle(u)">
-                      {{ u.tourAccess ? 'Открыт' : 'Закрыт' }}
+                      {{ u.tourAccess ? i18n.t('Ашық', 'Открыт') : i18n.t('Жабық', 'Закрыт') }}
                     </button>
                   </td>
                 </tr>
@@ -60,7 +76,7 @@ import { Lead, User } from '../core/models';
       </div>
 
       <div class="panel">
-        <h2>Заявки с сайта ({{ leads().length }})</h2>
+        <h2>{{ i18n.t('Сайттан түскен өтінімдер', 'Заявки с сайта') }} ({{ leads().length }})</h2>
         <div class="leads">
           @for (l of leads(); track l.id) {
             <article class="lead">
@@ -69,7 +85,7 @@ import { Lead, User } from '../core/models';
               <p class="body">{{ l.message }}</p>
             </article>
           } @empty {
-            <p class="empty">Пока нет новых заявок.</p>
+            <p class="empty">{{ i18n.t('Әзірге жаңа өтінімдер жоқ.', 'Пока нет новых заявок.') }}</p>
           }
         </div>
       </div>
@@ -230,6 +246,7 @@ import { Lead, User } from '../core/models';
 export class Admin {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
   readonly users = signal<User[]>([]);
   readonly leads = signal<Lead[]>([]);
   readonly msg = signal('');
@@ -252,17 +269,22 @@ export class Admin {
   create() {
     this.msg.set('');
     if (this.form.invalid) {
-      this.msg.set('Заполните имя, email и пароль от 8 символов');
+      this.msg.set(
+        this.i18n.t(
+          'Есімі, email және 8 таңбадан кем емес құпия сөзді толтырыңыз',
+          'Заполните имя, email и пароль от 8 символов',
+        ),
+      );
       return;
     }
     const v = this.form.getRawValue();
     this.api.createUser({ ...v, role: 'traveler' }).subscribe({
       next: () => {
-        this.msg.set('Аккаунт создан');
+        this.msg.set(this.i18n.t('Аккаунт құрылды', 'Аккаунт создан'));
         this.form.reset({ name: '', email: '', password: '', tourAccess: true });
         this.reload();
       },
-      error: (e: HttpErrorResponse) => this.msg.set(e.error?.error ?? 'Ошибка'),
+      error: (e: HttpErrorResponse) => this.msg.set(e.error?.error ?? this.i18n.t('Қате', 'Ошибка')),
     });
   }
 

@@ -1,4 +1,5 @@
-import { Component, computed, ElementRef, HostListener, input, signal, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, input, signal, viewChild } from '@angular/core';
+import { I18nService } from '../core/i18n';
 import { MomentPhoto } from '../data/tour';
 
 @Component({
@@ -6,11 +7,16 @@ import { MomentPhoto } from '../data/tour';
   template: `
     <div class="grid">
       @for (m of moments(); track m.id; let i = $index) {
-        <button type="button" class="shot" (click)="openAt(i)" [attr.aria-label]="'Открыть фото: ' + m.city">
-          <img [src]="m.image" [alt]="m.city + ' — ' + m.caption" loading="lazy" />
+        <button
+          type="button"
+          class="shot"
+          (click)="openAt(i)"
+          [attr.aria-label]="i18n.t('Фотоны ашу: ', 'Открыть фото: ') + i18n.pick(m.city)"
+        >
+          <img [src]="m.image" [alt]="i18n.pick(m.city) + ' — ' + i18n.pick(m.caption)" loading="lazy" />
           <div class="meta">
-            <span class="pill">{{ m.tag }}</span>
-            <strong>{{ m.city }}</strong>
+            <span class="pill">{{ i18n.pick(m.tag) }}</span>
+            <strong>{{ i18n.pick(m.city) }}</strong>
           </div>
         </button>
       }
@@ -19,15 +25,36 @@ import { MomentPhoto } from '../data/tour';
     <dialog #box class="lightbox" (click)="onBackdrop($event)" (cancel)="close()">
       @if (active(); as cur) {
         <div class="frame" (click)="$event.stopPropagation()">
-          <button type="button" class="lb-close" (click)="close()" aria-label="Закрыть">✕</button>
-          <button type="button" class="lb-nav lb-nav--prev" (click)="step(-1)" aria-label="Предыдущее фото">‹</button>
-          <img [src]="cur.image" [alt]="cur.city" />
-          <button type="button" class="lb-nav lb-nav--next" (click)="step(1)" aria-label="Следующее фото">›</button>
+          <button
+            type="button"
+            class="lb-close"
+            (click)="close()"
+            [attr.aria-label]="i18n.t('Жабу', 'Закрыть')"
+          >
+            ✕
+          </button>
+          <button
+            type="button"
+            class="lb-nav lb-nav--prev"
+            (click)="step(-1)"
+            [attr.aria-label]="i18n.t('Алдыңғы фото', 'Предыдущее фото')"
+          >
+            ‹
+          </button>
+          <img [src]="cur.image" [alt]="i18n.pick(cur.city)" />
+          <button
+            type="button"
+            class="lb-nav lb-nav--next"
+            (click)="step(1)"
+            [attr.aria-label]="i18n.t('Келесі фото', 'Следующее фото')"
+          >
+            ›
+          </button>
           <div class="lb-cap">
             <div>
-              <span>{{ cur.tag }}</span>
-              <strong>{{ cur.city }}</strong>
-              <p>{{ cur.caption }}</p>
+              <span>{{ i18n.pick(cur.tag) }}</span>
+              <strong>{{ i18n.pick(cur.city) }}</strong>
+              <p>{{ i18n.pick(cur.caption) }}</p>
             </div>
             <span class="lb-count">{{ activeIndex() + 1 }} / {{ moments().length }}</span>
           </div>
@@ -235,6 +262,7 @@ import { MomentPhoto } from '../data/tour';
   `,
 })
 export class MomentsGallery {
+  readonly i18n = inject(I18nService);
   readonly moments = input.required<MomentPhoto[]>();
   private readonly box = viewChild<ElementRef<HTMLDialogElement>>('box');
 

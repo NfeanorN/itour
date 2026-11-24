@@ -1,10 +1,20 @@
 <section class="tracker-section">
   <div class="wrap">
     <header class="sec-head">
-      <p class="sec-kicker">Интерактивный маршрут · Живая телеметрия</p>
-      <h2 class="sec-title">Весь Евротур — <em>в реальном движении</em></h2>
+      <p class="sec-kicker">
+        {{ i18n.t('Интерактивті маршрут · Жанды телеметрия', 'Интерактивный маршрут · Живая телеметрия') }}
+      </p>
+      <h2 class="sec-title">
+        {{ i18n.t('Бүкіл Еуротур —', 'Весь Евротур —') }}
+        <em>{{ i18n.t('нақты қозғалыста', 'в реальном движении') }}</em>
+      </h2>
       <p class="sec-lead">
-        От вылета из Алматы через Италию и Париж до подъёма на 1 650 м в швейцарский Мюррен. Нажмите на любой город внизу, чтобы перелететь к нужному этапу.
+        {{
+          i18n.t(
+            'Алматыдан ұшып шығып, Италия мен Париж арқылы Швейцариядағы 1 650 м биіктіктегі Мюрренге дейін. Қалаған кезеңге өту үшін төмендегі қаланы басыңыз.',
+            'От вылета из Алматы через Италию и Париж до подъёма на 1 650 м в швейцарский Мюррен. Нажмите на любой город внизу, чтобы перелететь к нужному этапу.'
+          )
+        }}
       </p>
     </header>
 
@@ -15,12 +25,25 @@
             <span class="live-dot"></span>
             ARALA ROUTE TRACKER
           </span>
-          <span class="leg-counter">ЭТАП {{ legNumberLabel() }}</span>
+          <span class="leg-counter">{{ i18n.t('КЕЗЕҢ', 'ЭТАП') }} {{ legNumberLabel() }}</span>
           <div class="controls">
             <button type="button" class="ctrl-btn" (click)="togglePlay()">
-              {{ playing() ? 'Пауза' : done() ? 'Заново' : 'Пуск' }}
+              @if (reducedMotion()) {
+                {{ i18n.t('Келесі', 'Дальше') }}
+              } @else if (playing()) {
+                {{ i18n.t('Үзіліс', 'Пауза') }}
+              } @else if (done()) {
+                {{ i18n.t('Қайта', 'Заново') }}
+              } @else {
+                {{ i18n.t('Қосу', 'Пуск') }}
+              }
             </button>
-            <button type="button" class="ctrl-btn ctrl-btn--ghost" (click)="replay()" aria-label="Повторить анимацию">
+            <button
+              type="button"
+              class="ctrl-btn ctrl-btn--ghost"
+              (click)="replay()"
+              [attr.aria-label]="i18n.t('Анимацияны қайта көру', 'Повторить анимацию')"
+            >
               ↺
             </button>
           </div>
@@ -32,14 +55,18 @@
               <span class="code">{{ fromCity().code }}</span>
               <span class="flag" aria-hidden="true">{{ fromCity().flag }}</span>
             </div>
-            <span class="place">{{ fromCity().name }}</span>
+            <span class="place">{{ i18n.pick(fromCity().name) }}</span>
             <span class="sub">{{ fromCity().airport }}</span>
           </div>
 
           <div class="progress-col">
             <span class="elapsed">{{ elapsedLabel() }}</span>
             <div class="bar-track" aria-hidden="true">
-              <div class="bar-fill" [class.bar-fill--train]="currentLeg().mode === 'train'" [style.width.%]="progressPct()"></div>
+              <div
+                class="bar-fill"
+                [class.bar-fill--train]="currentLeg().mode === 'train'"
+                [style.width.%]="progressPct()"
+              ></div>
               <span
                 class="bar-marker"
                 [class.bar-marker--train]="currentLeg().mode === 'train'"
@@ -56,49 +83,70 @@
               <span class="flag" aria-hidden="true">{{ toCity().flag }}</span>
               <span class="code">{{ toCity().code }}</span>
             </div>
-            <span class="place">{{ toCity().name }}</span>
+            <span class="place">{{ i18n.pick(toCity().name) }}</span>
             <span class="sub">{{ toCity().airport }}</span>
           </div>
         </div>
       </div>
 
       <div class="viewport">
-        <div #map class="map" role="img" aria-label="Интерактивная карта маршрута Евротура ARALA"></div>
+        <div
+          #map
+          class="map"
+          role="img"
+          [attr.aria-label]="i18n.t('ARALA Еуротур маршрутының интерактивті картасы', 'Интерактивная карта маршрута Евротура ARALA')"
+        ></div>
         <div class="vignette" aria-hidden="true"></div>
         <div class="story-chip">
-          <span class="carrier">{{ currentLeg().carrier }}</span>
-          <p>{{ currentLeg().story }}</p>
+          <span class="carrier">{{ i18n.pick(currentLeg().carrier) }}</span>
+          <p>{{ i18n.pick(currentLeg().story) }}</p>
         </div>
       </div>
 
       <div class="telemetry">
         <div class="metrics">
           <div class="metric">
-            <span class="m-label">ДИСТАНЦИЯ ЭТАПА</span>
+            <span class="m-label">{{ i18n.t('КЕЗЕҢ ҚАШЫҚТЫҒЫ', 'ДИСТАНЦИЯ ЭТАПА') }}</span>
             <strong class="m-val">{{ formatNum(distanceKm()) }} <small>км</small></strong>
-            <span class="m-sub">Всего: {{ formatNum(totalTraveledKm()) }} км</span>
+            <span class="m-sub">{{ i18n.t('Барлығы:', 'Всего:') }} {{ formatNum(totalTraveledKm()) }} км</span>
           </div>
           <div class="metric">
-            <span class="m-label">{{ currentLeg().mode === 'plane' ? 'ВЫСОТА ПОЛЁТА' : 'ВЫСОТА НАД МОРЕМ' }}</span>
+            <span class="m-label">
+              {{
+                currentLeg().mode === 'plane'
+                  ? i18n.t('ҰШУ БИІКТІГІ', 'ВЫСОТА ПОЛЁТА')
+                  : i18n.t('ТЕҢІЗ ДЕҢГЕЙІНЕН', 'ВЫСОТА НАД МОРЕМ')
+              }}
+            </span>
             <strong class="m-val">{{ formatNum(altitudeM()) }} <small>м</small></strong>
-            <span class="m-sub">Пик: {{ formatNum(currentLeg().maxAltitudeM) }} м</span>
+            <span class="m-sub">{{ i18n.t('Ең биік:', 'Пик:') }} {{ formatNum(currentLeg().maxAltitudeM) }} м</span>
           </div>
           <div class="metric">
-            <span class="m-label">СКОРОСТЬ</span>
-            <strong class="m-val">{{ formatNum(speedKmh()) }} <small>км/ч</small></strong>
-            <span class="m-sub">Макс: {{ formatNum(currentLeg().maxSpeedKmh) }} км/ч</span>
-          </div>
-          <div class="metric">
-            <span class="m-label">ТРАНСПОРТ</span>
-            <strong class="m-val m-val--text">
-              {{ currentLeg().mode === 'plane' ? 'Самолёт' : currentLeg().alpine ? 'Альпы · поезд' : 'Поезд' }}
+            <span class="m-label">{{ i18n.t('ЖЫЛДАМДЫҚ', 'СКОРОСТЬ') }}</span>
+            <strong class="m-val">
+              {{ formatNum(speedKmh()) }} <small>{{ i18n.t('км/сағ', 'км/ч') }}</small>
             </strong>
-            <span class="m-sub">{{ currentLeg().label }}</span>
+            <span class="m-sub">
+              {{ i18n.t('Макс:', 'Макс:') }} {{ formatNum(currentLeg().maxSpeedKmh) }} {{ i18n.t('км/сағ', 'км/ч') }}
+            </span>
+          </div>
+          <div class="metric">
+            <span class="m-label">{{ i18n.t('КӨЛІК', 'ТРАНСПОРТ') }}</span>
+            <strong class="m-val m-val--text">
+              @if (currentLeg().mode === 'plane') {
+                {{ i18n.t('Ұшақ', 'Самолёт') }}
+              } @else if (currentLeg().alpine) {
+                {{ i18n.t('Альпі · пойыз', 'Альпы · поезд') }}
+              } @else {
+                {{ i18n.t('Пойыз', 'Поезд') }}
+              }
+            </strong>
+            <span class="m-sub">{{ i18n.pick(currentLeg().label) }}</span>
           </div>
         </div>
 
         <div class="chart-wrap" aria-hidden="true">
-          <span class="axis-l">ВЫСОТА</span>
+          <span class="axis-l">{{ i18n.t('БИІКТІК', 'ВЫСОТА') }}</span>
           <svg viewBox="0 0 600 62" preserveAspectRatio="none">
             <defs>
               <linearGradient id="aralaAltGrad" x1="0" y1="0" x2="0" y2="1">
@@ -118,10 +166,10 @@
               <path [attr.d]="altPath()" class="alt-line" />
             }
           </svg>
-          <span class="axis-r">СКОРОСТЬ</span>
+          <span class="axis-r">{{ i18n.t('ЖЫЛДАМДЫҚ', 'СКОРОСТЬ') }}</span>
         </div>
 
-        <nav class="leg-strip" aria-label="Этапы маршрута">
+        <nav class="leg-strip" [attr.aria-label]="i18n.t('Маршрут кезеңдері', 'Этапы маршрута')">
           @for (leg of legs; track leg.id; let i = $index) {
             <button
               type="button"
@@ -131,7 +179,7 @@
               (click)="jumpToLeg(i)"
             >
               <span class="leg-mode">{{ leg.mode === 'plane' ? '✈' : '🚆' }}</span>
-              {{ leg.chipLabel }}
+              {{ i18n.pick(leg.chipLabel) }}
             </button>
           }
         </nav>

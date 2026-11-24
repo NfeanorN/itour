@@ -132,19 +132,44 @@ export function cameraZoomForPhase(t: number, isFlight: boolean, overviewZoom: n
   return Number((overviewZoom + (maxClose - overviewZoom) * boost).toFixed(2));
 }
 
-export function statusForPhase(t: number, mode: 'plane' | 'train', alpine = false): PhaseStatus {
+export function statusForPhase(
+  t: number,
+  mode: 'plane' | 'train',
+  alpine = false,
+  lang: 'kk' | 'ru' = 'kk',
+): PhaseStatus {
   const x = clamp01(t);
   if (x < 0.04) {
-    return { label: mode === 'plane' ? 'НА ПОЛОСЕ' : 'ОТПРАВЛЕНИЕ', tone: 'ground' };
+    return {
+      label:
+        lang === 'kk'
+          ? mode === 'plane'
+            ? 'ҰШУ АЛАҢЫНДА'
+            : 'ЖОЛҒА ШЫҒУ'
+          : mode === 'plane'
+            ? 'НА ПОЛОСЕ'
+            : 'ОТПРАВЛЕНИЕ',
+      tone: 'ground',
+    };
   }
   if (x > 0.94) {
-    return { label: mode === 'plane' ? 'ПОСАДКА' : 'ПРИБЫТИЕ', tone: 'arrived' };
+    return {
+      label:
+        lang === 'kk'
+          ? mode === 'plane'
+            ? 'ҚОНДЫ'
+            : 'ЖЕТЕДІ'
+          : mode === 'plane'
+            ? 'ПОСАДКА'
+            : 'ПРИБЫТИЕ',
+      tone: 'arrived',
+    };
   }
   if (alpine) {
-    return { label: 'АЛЬПИЙСКИЙ ПОДЪЁМ', tone: 'alpine' };
+    return { label: lang === 'kk' ? 'АЛЬПІГЕ КӨТЕРІЛУ' : 'АЛЬПИЙСКИЙ ПОДЪЁМ', tone: 'alpine' };
   }
   if (mode === 'plane') {
-    return { label: 'В ПОЛЁТЕ', tone: 'air' };
+    return { label: lang === 'kk' ? 'ӘУЕДЕ' : 'В ПОЛЁТЕ', tone: 'air' };
   }
-  return { label: 'СКОРОСТНОЙ ПОЕЗД', tone: 'rail' };
+  return { label: lang === 'kk' ? 'ЖЫЛДАМ ПОЙЫЗ' : 'СКОРОСТНОЙ ПОЕЗД', tone: 'rail' };
 }

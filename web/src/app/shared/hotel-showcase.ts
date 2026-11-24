@@ -1,4 +1,5 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
+import { I18nService } from '../core/i18n';
 import { HotelTier } from '../data/tour';
 
 @Component({
@@ -8,36 +9,40 @@ import { HotelTier } from '../data/tour';
       @for (tier of tiers(); track tier.id) {
         <article class="card">
           <div class="top">
-            <span class="kicker">{{ tier.flag }} {{ tier.country }}</span>
-            <span class="stars">{{ tier.stars }}</span>
+            <span class="kicker">{{ tier.flag }} {{ i18n.pick(tier.country) }}</span>
+            <span class="stars">{{ i18n.pick(tier.stars) }}</span>
           </div>
-          <h3>{{ tier.title }}</h3>
+          <h3>{{ i18n.pick(tier.title) }}</h3>
 
           <div class="stage">
             <img
               [src]="activePhoto(tier).url"
-              [alt]="tier.title + ' — ' + activePhoto(tier).label"
+              [alt]="i18n.pick(tier.title) + ' — ' + i18n.pick(activePhoto(tier).label)"
               loading="lazy"
               referrerpolicy="no-referrer"
             />
-            <span class="cap">{{ activePhoto(tier).label }}</span>
+            <span class="cap">{{ i18n.pick(activePhoto(tier).label) }}</span>
           </div>
 
-          <div class="thumbs" role="group" [attr.aria-label]="'Фото отелей ' + tier.country">
+          <div
+            class="thumbs"
+            role="group"
+            [attr.aria-label]="i18n.t('Қонақ үй фотолары: ', 'Фото отелей: ') + i18n.pick(tier.country)"
+          >
             @for (ph of tier.photos; track ph.url; let i = $index) {
               <button
                 type="button"
                 class="thumb"
                 [class.is-on]="selectedIdx(tier.id) === i"
                 (click)="select(tier.id, i)"
-                [attr.aria-label]="ph.label"
+                [attr.aria-label]="i18n.pick(ph.label)"
               >
-                <img [src]="ph.url" [alt]="ph.label" loading="lazy" referrerpolicy="no-referrer" />
+                <img [src]="ph.url" [alt]="i18n.pick(ph.label)" loading="lazy" referrerpolicy="no-referrer" />
               </button>
             }
           </div>
 
-          <p class="desc">{{ tier.description }}</p>
+          <p class="desc">{{ i18n.pick(tier.description) }}</p>
         </article>
       }
     </div>
@@ -163,6 +168,7 @@ import { HotelTier } from '../data/tour';
   `,
 })
 export class HotelShowcase {
+  readonly i18n = inject(I18nService);
   readonly tiers = input.required<HotelTier[]>();
   private readonly picks = signal<Record<string, number>>({});
 

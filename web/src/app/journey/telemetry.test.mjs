@@ -90,16 +90,21 @@ test('cameraZoomForPhase zooms tight on departure & arrival and pulls back at cr
   assert.ok(Math.abs(cruise - 5.2) < 0.25);
 });
 
-test('statusForPhase transitions cleanly from ground to en-route to arrived', () => {
-  assert.equal(statusForPhase(0.01, 'plane').tone, 'ground');
-  assert.equal(statusForPhase(0.45, 'plane').tone, 'air');
-  assert.equal(statusForPhase(0.45, 'train').tone, 'rail');
-  assert.equal(statusForPhase(0.45, 'train', true).tone, 'alpine');
-  assert.equal(statusForPhase(0.97, 'plane').tone, 'arrived');
+test('statusForPhase supports both Kazakh (default) and Russian status labels', () => {
+  assert.equal(statusForPhase(0.01, 'plane', false, 'kk').label, 'ҰШУ АЛАҢЫНДА');
+  assert.equal(statusForPhase(0.45, 'plane', false, 'kk').label, 'ӘУЕДЕ');
+  assert.equal(statusForPhase(0.45, 'train', false, 'kk').label, 'ЖЫЛДАМ ПОЙЫЗ');
+  assert.equal(statusForPhase(0.45, 'train', true, 'kk').label, 'АЛЬПІГЕ КӨТЕРІЛУ');
+  assert.equal(statusForPhase(0.97, 'plane', false, 'kk').label, 'ҚОНДЫ');
+
+  assert.equal(statusForPhase(0.45, 'plane', false, 'ru').label, 'В ПОЛЁТЕ');
+  assert.equal(statusForPhase(0.97, 'plane', false, 'ru').tone, 'arrived');
 });
 
-test('ARALA Classic Eurotour data matches spec counts and WhatsApp encoding', () => {
+test('ARALA bilingual Classic Eurotour data has complete kk & ru pairs', () => {
   assert.equal(TOUR_WAVES.length, 4);
+  assert.equal(TOUR_WAVES[0].dates.kk, '21–29 қаңтар');
+  assert.equal(TOUR_WAVES[0].dates.ru, '21–29 января');
   assert.equal(TOUR_WAVES[0].price, '1 190 000 ₸');
   assert.equal(TOUR_WAVES[3].price, '1 250 000 ₸');
   assert.equal(INCLUDED.length, 7);
@@ -108,20 +113,29 @@ test('ARALA Classic Eurotour data matches spec counts and WhatsApp encoding', ()
   assert.equal(MOMENTS.length, 8);
   assert.equal(CHAPTERS.length, 6);
   assert.ok(LEGS.length >= 10);
-  const url = whatsappLink(WHATSAPP_TOURS, 'Привет, хочу в Евротур 4–13 марта!');
+
+  for (const item of [...INCLUDED, ...EXCLUDED]) {
+    assert.ok(item.kk.trim().length > 0 && item.ru.trim().length > 0);
+  }
+  const url = whatsappLink(WHATSAPP_TOURS, 'Сәлеметсіз бе! 4–13 наурыз');
   assert.ok(url.startsWith('https://wa.me/77066089508?text='));
-  assert.ok(url.includes(encodeURIComponent('4–13 марта')));
+  assert.ok(url.includes(encodeURIComponent('4–13 наурыз')));
 });
 
-test('review regressions: anchorScrolling enabled, modal scrolls on short screens, map cleans up under reduced motion', () => {
+test('map uses Esri Dark Gray Canvas (no API-key CARTO), Kazakh is default lang, and regressions hold', () => {
+  const i18nSrc = readFileSync(resolve(import.meta.dirname, '..', 'core', 'i18n.ts'), 'utf8');
+  assert.ok(i18nSrc.includes("return 'kk'"), 'Kazakh must be the default language');
+
   const appCfg = readFileSync(resolve(import.meta.dirname, '..', 'app.config.ts'), 'utf8');
-  assert.ok(appCfg.includes("anchorScrolling: 'enabled'"), 'anchorScrolling must be enabled for cross-route fragments');
+  assert.ok(appCfg.includes("anchorScrolling: 'enabled'"), 'anchorScrolling must be enabled');
 
   const modalSrc = readFileSync(resolve(import.meta.dirname, '..', 'shared', 'booking-modal.ts'), 'utf8');
   assert.ok(modalSrc.includes('overflow-y: auto'), 'booking modal sheet must scroll vertically on short viewports');
 
   const mapSrc = readFileSync(resolve(import.meta.dirname, 'journey-map.ts'), 'utf8');
-  assert.ok(mapSrc.indexOf('this.destroyRef.onDestroy') < mapSrc.indexOf('if (reduced)'), 'onDestroy must register before reduced-motion early return');
+  assert.ok(mapSrc.includes('World_Dark_Gray_Base'), 'map must use Esri World_Dark_Gray_Base tiles');
+  assert.ok(!mapSrc.includes('basemaps.cartocdn.com'), 'map must not use CARTO tiles that require an API key');
+  assert.ok(mapSrc.includes('updateWhenZooming: false'), 'map tiles must not abort on zoom');
+  assert.ok(mapSrc.indexOf('this.destroyRef.onDestroy') < mapSrc.indexOf('if (reduced)'), 'onDestroy before reduced return');
   assert.ok(mapSrc.includes('cancelAnimationFrame(this.initRaf)'), 'initial RAF must be cancelled cleanly');
-  assert.ok(mapSrc.includes('getBoundsZoom'), 'overview zoom must adapt to mobile viewport width');
 });

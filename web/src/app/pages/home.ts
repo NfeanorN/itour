@@ -3,6 +3,7 @@ import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../core/api';
+import { I18nService } from '../core/i18n';
 import { Reveal } from '../core/reveal';
 import {
   ADVANTAGES,
@@ -48,6 +49,7 @@ import { MomentsGallery } from '../shared/moments-gallery';
 export class Home {
   private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(I18nService);
   private readonly bookingModal = viewChild<BookingModal>(BookingModal);
 
   readonly heroImage = HERO_IMAGE;
@@ -79,29 +81,44 @@ export class Home {
     name: ['', Validators.required],
     phone: [''],
     telegram: [''],
-    wave: [`${TOUR_WAVES[0].dates} (${TOUR_WAVES[0].price})`],
-    message: ['Хочу в Классический Евротур ARALA'],
+    waveId: [TOUR_WAVES[0].id],
+    message: [''],
   });
 
-  readonly waDirectUrl = whatsappLink(
-    WHATSAPP_TOURS,
-    'Здравствуйте! Интересует Классический Евротур ARALA (Италия, Франция, Швейцария).',
+  readonly waDirectUrl = computed(() =>
+    whatsappLink(
+      WHATSAPP_TOURS,
+      this.i18n.t(
+        'Сәлеметсіз бе! ARALA Классикалық Еуротуры (Италия, Франция, Швейцария) қызықтырады.',
+        'Здравствуйте! Интересует Классический Евротур ARALA (Италия, Франция, Швейцария).',
+      ),
+    ),
   );
-  readonly waVisaUrl = whatsappLink(
-    WHATSAPP_VISA,
-    'Здравствуйте! Хочу проконсультироваться по шенгенской визе через ARALA.',
+
+  readonly waVisaUrl = computed(() =>
+    whatsappLink(
+      WHATSAPP_VISA,
+      this.i18n.t(
+        'Сәлеметсіз бе! ARALA арқылы шенген визасы бойынша кеңес алғым келеді.',
+        'Здравствуйте! Хочу проконсультироваться по шенгенской визе через ARALA.',
+      ),
+    ),
   );
 
   readonly formWaUrl = computed(() => {
     this.formTick();
+    const l = this.i18n.lang();
     const v = this.form.getRawValue();
+    const waveText = this.resolveWaveText(v.waveId, l);
     const lines = [
-      'Здравствуйте! Оставляю заявку на Классический Евротур ARALA.',
-      v.name.trim() ? `Имя: ${v.name.trim()}` : '',
-      v.wave ? `Даты: ${v.wave}` : '',
+      l === 'kk'
+        ? 'Сәлеметсіз бе! ARALA Классикалық Еуротурына өтінім қалдырамын.'
+        : 'Здравствуйте! Оставляю заявку на Классический Евротур ARALA.',
+      v.name.trim() ? `${l === 'kk' ? 'Есімім' : 'Имя'}: ${v.name.trim()}` : '',
+      waveText ? `${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}` : '',
       v.phone.trim() ? `Телефон: ${v.phone.trim()}` : '',
       v.telegram.trim() ? `Telegram: ${v.telegram.trim()}` : '',
-      v.message.trim() ? `Комментарий: ${v.message.trim()}` : '',
+      v.message.trim() ? `${l === 'kk' ? 'Пікір' : 'Комментарий'}: ${v.message.trim()}` : '',
     ].filter(Boolean);
     return whatsappLink(WHATSAPP_TOURS, lines.join('\n'));
   });
@@ -111,8 +128,7 @@ export class Home {
   }
 
   openBooking(wave?: TourWave): void {
-    const label = wave ? `${wave.dates} (${wave.price})` : undefined;
-    this.bookingModal()?.open(label);
+    this.bookingModal()?.open(wave?.id);
   }
 
   offeringWa(phone: string, text: string): string {
@@ -121,17 +137,21 @@ export class Home {
 
   submit(): void {
     this.err.set('');
+    const l = this.i18n.lang();
     const v = this.form.getRawValue();
     if (!v.name.trim()) {
-      this.err.set('Напишите ваше имя');
+      this.err.set(l === 'kk' ? 'Есіміңізді жазыңыз' : 'Напишите ваше имя');
       return;
     }
     if (!v.phone.trim() && !v.telegram.trim()) {
-      this.err.set('Укажите телефон или Telegram');
+      this.err.set(l === 'kk' ? 'Телефон немесе Telegram көрсетіңіз' : 'Укажите телефон или Telegram');
       return;
     }
     this.sending.set(true);
-    const fullMessage = [`Даты: ${v.wave}`, v.message.trim()].filter(Boolean).join(' · ');
+    const waveText = this.resolveWaveText(v.waveId, l);
+    const fullMessage = [`${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`, v.message.trim()]
+      .filter(Boolean)
+      .join(' · ');
     this.api
       .sendLead({
         name: v.name.trim(),
@@ -149,9 +169,19 @@ export class Home {
           this.sending.set(false);
           this.err.set(
             e.error?.error ??
-              'Не удалось отправить на сервер — нажмите «Написать в WhatsApp», текст заявки уже готов.',
+              (l === 'kk'
+                ? 'Серверге жіберілмеді — «WhatsApp-қа жазу» батырмасын басыңыз, өтінім мәтіні дайын.'
+                : 'Не удалось отправить на сервер — нажмите «Написать в WhatsApp», текст заявки уже готов.'),
           );
         },
       });
+  }
+
+  private resolveWaveText(id: string, lang: 'kk' | 'ru'): string {
+    const found = this.waves.find((w) => w.id === id);
+    if (!found) {
+      return lang === 'kk' ? 'Күн таңдауға көмектесіңізші' : 'Помогите выбрать даты';
+    }
+    return `${found.dates[lang]} (${found.price})`;
   }
 }
