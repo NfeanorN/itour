@@ -1,28 +1,29 @@
-<article class="chapter" [id]="city().id" reveal>
+<article class="chapter" [class.chapter--featured]="chapter().featured" [id]="chapter().id" reveal>
   <header class="head">
-    <p class="kicker">{{ city().kicker }}</p>
-    <h2>{{ city().name }}</h2>
-    <p class="country">{{ city().country }}</p>
-    <p class="story">{{ city().story }}</p>
-    <div class="chips">
+    <div class="head-copy">
+      <p class="kicker">{{ chapter().flag }} {{ chapter().kicker }}</p>
+      <h3>{{ chapter().title }}</h3>
+      <p class="subtitle">{{ chapter().subtitle }}</p>
+      <p class="story">{{ chapter().story }}</p>
+    </div>
+
+    <div class="chips" role="group" [attr.aria-label]="'Фильтр мест: ' + chapter().title">
       <button type="button" [class.on]="filter() === 'all'" (click)="filter.set('all')">Все</button>
-      <button type="button" [class.on]="filter() === 'sight'" (click)="filter.set('sight')">
-        Места
-      </button>
-      <button type="button" [class.on]="filter() === 'food'" (click)="filter.set('food')">
-        Рестораны
-      </button>
+      <button type="button" [class.on]="filter() === 'sight'" (click)="filter.set('sight')">Места</button>
+      <button type="button" [class.on]="filter() === 'food'" (click)="filter.set('food')">Атмосфера</button>
     </div>
   </header>
 
-  <div class="ig">
+  <div class="cards" [class.cards--four]="places().length === 4">
     @for (p of places(); track p.title) {
-      <figure class="card" [class.card--food]="p.kind === 'food'">
-        <img [src]="p.image" [alt]="p.title" loading="lazy" referrerpolicy="no-referrer" />
+      <figure class="card">
+        <div class="media">
+          <img [src]="p.image" [alt]="p.title" loading="lazy" referrerpolicy="no-referrer" />
+          <span class="kind">{{ p.kind === 'food' ? 'Атмосфера' : 'Локация' }}</span>
+        </div>
         <figcaption>
-          <span>{{ p.location }}</span>
+          <span class="loc">{{ p.location }}</span>
           <strong>{{ p.title }}</strong>
-          <em>{{ p.kind === 'food' ? 'Атмосфера' : 'Достопримечательность' }}</em>
           <p>{{ p.caption }}</p>
         </figcaption>
       </figure>

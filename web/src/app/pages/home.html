@@ -1,85 +1,352 @@
-<section class="hero">
-  <img [src]="hero" alt="" [style.transform]="'translate3d(0, ' + heroShift() + 'px, 0) scale(1.12)'" />
-  <div class="veil"></div>
-  <div class="hero-copy">
-    <p class="eyebrow">Авторский евротур</p>
-    <h1>Европа.<br />Как кино.</h1>
-    <p class="sub">
-      Алматы → Рим → Венеция → Париж → Цюрих → Лаутербруннен → домой.
-      Самолёты, поезда, Ватикан, каналы и альпийская тишина.
-    </p>
-    <div class="hero-actions">
-      <a href="#book" class="btn">Записаться в группу</a>
-      <a href="#route" class="btn btn--ghost">Смотреть маршрут</a>
+<section class="hero-wrap" id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="country-pill">🇮🇹 ИТАЛИЯ · 🇫🇷 ФРАНЦИЯ · 🇨🇭 ШВЕЙЦАРИЯ</span>
+        <h1>
+          Путешествие мечты<br />
+          <em>по Европе</em> за одну поездку
+        </h1>
+        <p class="hero-lead">
+          Милан, Венеция, Рим и Ватикан, Париж, Базель, Цюрих — и полноценная программа в Швейцарских Альпах:
+          Лаутербруннен и высокогорный Мюррен.
+        </p>
+
+        <div class="hero-badges">
+          <span>9–11 дней</span>
+          <span>Авторская группа</span>
+          <span class="badge-gold">от 1 190 000 ₸ / чел.</span>
+          <span>✈ Перелёты + виза включены</span>
+        </div>
+
+        <div class="hero-actions">
+          <button type="button" class="btn btn--gold" (click)="openBooking()">Забронировать место</button>
+          <a href="#route" class="btn btn--ghost-light">Смотреть маршрут</a>
+        </div>
+
+        <p class="hero-note">
+          200+ счастливых туристов · 100+ виз · Турлидеры Ернұр и Қайрат рядом 24/7
+        </p>
+      </div>
+
+      <div class="hero-visual">
+        <div class="hero-frame">
+          <img [src]="heroImage" alt="Швейцарские Альпы и долина Лаутербруннен" referrerpolicy="no-referrer" />
+          <div class="hero-frame-tag">
+            <span>Особенная часть тура</span>
+            <strong>Швейцарские Альпы · 1 650 м</strong>
+          </div>
+        </div>
+        <div class="hero-float">
+          <img [src]="heroSecondary" alt="Париж, Эйфелева башня" referrerpolicy="no-referrer" />
+          <div>
+            <strong>3 страны · 8 городов</strong>
+            <span>Вылет из Алматы</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="strip" reveal>
-  <p>12 дней · 5 городов · Италия, Франция, Швейцария · старт из Алматы</p>
+<section class="sec" id="dates" reveal>
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">Даты и стоимость · Классический Евротур</p>
+      <h2 class="sec-title">Выберите удобные даты <em>поездки</em></h2>
+      <p class="sec-lead">
+        Стоимость указана за 1 человека — перелёты, отели 3–4★, трансферы и визовое сопровождение уже внутри. Нажмите на
+        дату, чтобы забронировать место.
+      </p>
+    </header>
+
+    <div class="waves">
+      @for (w of waves; track w.id) {
+        <button type="button" class="wave-card" (click)="openBooking(w)">
+          <div class="wave-top">
+            <span class="wave-tag">{{ w.tag }}</span>
+            <span class="wave-dur">{{ w.duration }}</span>
+          </div>
+          <strong class="wave-dates">{{ w.dates }}</strong>
+          <div class="wave-bottom">
+            <span class="wave-price">{{ w.price }}</span>
+            <span class="wave-cta">Выбрать →</span>
+          </div>
+        </button>
+      }
+    </div>
+
+    <div class="bento-details">
+      <article class="detail-card">
+        <span class="k">Проживание</span>
+        <h3>Отели 3–4★ по маршруту</h3>
+        <p>Проверенные городские и альпийские отели с удобным расположением, чтобы не тратить время на дорогу.</p>
+      </article>
+
+      <article class="detail-card">
+        <span class="k">Логистика</span>
+        <h3>Перелёты и скоростные поезда</h3>
+        <p>Авиабилеты туда и обратно, ручная кладь до 5–7 кг и все переезды между странами и городами уже в туре.</p>
+      </article>
+
+      <article class="detail-card detail-card--accent">
+        <span class="k">Бонус ARALA</span>
+        <h3>Бесплатное визовое сопровождение</h3>
+        <p>
+          Помогаем собрать пакет документов и пройти подачу на шенген. После оплаты открываем личный визовый гайд.
+          Количество мест в группе ограничено.
+        </p>
+      </article>
+    </div>
+  </div>
 </section>
 
 <div id="route">
   <app-journey-map />
 </div>
 
-<section class="transit" reveal>
-  <div>
-    <h2>Как едем</h2>
-    <ul>
-      <li><span>Самолёт</span> Алматы — Рим <i>пересадка в Стамбуле</i></li>
-      <li><span>Поезд</span> Рим — Венеция</li>
-      <li><span>Самолёт</span> Венеция — Париж</li>
-      <li><span>Поезд</span> Париж — Цюрих</li>
-      <li><span>Поезд</span> Цюрих — Лаутербруннен и обратно</li>
-      <li><span>Самолёт</span> Цюрих — Алматы <i>пересадка в Стамбуле</i></li>
-    </ul>
+<section class="sec" id="cities">
+  <div class="wrap">
+    <header class="cities-head" reveal>
+      <p class="route-line">{{ routeSummary }}</p>
+      <div class="cities-bar">
+        <div class="sec-head" style="margin-bottom: 0">
+          <p class="sec-kicker">Программа по странам</p>
+          <h2 class="sec-title">Города и локации <em>маршрута</em></h2>
+        </div>
+
+        <div class="country-tabs" role="tablist" aria-label="Фильтр по странам">
+          <button type="button" [class.is-on]="countryFilter() === 'all'" (click)="countryFilter.set('all')">
+            Все (6)
+          </button>
+          <button type="button" [class.is-on]="countryFilter() === 'italy'" (click)="countryFilter.set('italy')">
+            🇮🇹 Италия
+          </button>
+          <button type="button" [class.is-on]="countryFilter() === 'france'" (click)="countryFilter.set('france')">
+            🇫🇷 Франция
+          </button>
+          <button
+            type="button"
+            [class.is-on]="countryFilter() === 'switzerland'"
+            (click)="countryFilter.set('switzerland')"
+          >
+            🇨🇭 Швейцария
+          </button>
+        </div>
+      </div>
+    </header>
+
+    @for (ch of visibleChapters(); track ch.id) {
+      <app-city-chapter [chapter]="ch" />
+    }
   </div>
-  <p>
-    Не конструктор «сами разберётесь». Маршрут собран так, чтобы каждый переезд был частью фильма:
-    утро в одном свете, вечер — уже в другом.
-  </p>
 </section>
 
-<div id="cities">
-  @for (c of cities; track c.id) {
-    <app-city-chapter [city]="c" />
-  }
-</div>
+<section class="sec sec--soft" id="moments" reveal>
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">Живые эмоции · Без стоковых постановок</p>
+      <h2 class="sec-title">Кадры наших туристов <em>из поездок</em></h2>
+      <p class="sec-lead">
+        Реальные фотографии групп ARALA из Милана, Венеции, Рима, Ватикана, Парижа, Цюриха и Швейцарских Альп. Нажмите
+        на любой кадр, чтобы рассмотреть ближе.
+      </p>
+    </header>
 
-<section class="access" reveal>
-  <h2>Гайд откроется после тура</h2>
-  <p>
-    Виза, пакет документов, подача в Италию, сборы и чемоданы — всё лежит в закрытом разделе.
-    После оплаты мы создаём вам аккаунт в админке и присылаем логин.
-  </p>
-  <a routerLink="/guide" class="btn btn--ghost">Перейти в гайд</a>
+    <app-moments-gallery [moments]="moments" />
+  </div>
 </section>
 
-<section class="book" id="book" reveal>
-  <div>
-    <h2>Записаться<br />и связаться</h2>
-    <p>Оставьте контакт — напишем в тот же день. Или сразу в WhatsApp.</p>
-    <div class="social">
-      <a [href]="ig" target="_blank" rel="noreferrer">Instagram</a>
-      <a [href]="wa" target="_blank" rel="noreferrer">WhatsApp</a>
+<section class="sec" id="hotels" reveal>
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">Комфорт 3–4★</p>
+      <h2 class="sec-title">Где мы живём <em>в путешествии</em></h2>
+      <p class="sec-lead">
+        Показываем формат и уровень размещения в каждой стране — переключите миниатюры, чтобы увидеть атмосферу номеров.
+      </p>
+    </header>
+
+    <app-hotel-showcase [tiers]="hotelTiers" />
+  </div>
+</section>
+
+<section class="sec" id="included" reveal>
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">Прозрачные условия</p>
+      <h2 class="sec-title">Что входит <em>в стоимость</em></h2>
+    </header>
+
+    <div class="compare">
+      <article class="comp-card comp-card--in">
+        <h3>Включено в тур</h3>
+        <ul>
+          @for (item of included; track item) {
+            <li><span class="ico-in" aria-hidden="true">✓</span>{{ item }}</li>
+          }
+        </ul>
+      </article>
+
+      <article class="comp-card comp-card--out">
+        <h3>Не входит в стоимость</h3>
+        <ul>
+          @for (item of excluded; track item) {
+            <li><span class="ico-out" aria-hidden="true">✕</span>{{ item }}</li>
+          }
+        </ul>
+      </article>
     </div>
   </div>
-
-  @if (sent()) {
-    <p class="thanks">Заявка ушла. Скоро напишем.</p>
-  } @else {
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <label>Имя<input formControlName="name" placeholder="Как к вам обращаться" /></label>
-      <label>Телефон<input formControlName="phone" placeholder="+7 …" /></label>
-      <label>Telegram<input formControlName="telegram" placeholder="@username" /></label>
-      <label>Сообщение<textarea formControlName="message" rows="3"></textarea></label>
-      @if (err()) {
-        <p class="err">{{ err() }}</p>
-      }
-      <button class="btn" type="submit" [disabled]="sending()">
-        {{ sending() ? 'Отправляем…' : 'Оставить заявку' }}
-      </button>
-    </form>
-  }
 </section>
+
+<section class="sec" id="why" reveal>
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">6 причин выбрать ARALA</p>
+      <h2 class="sec-title">Почему стоит поехать <em>именно с нами</em></h2>
+    </header>
+
+    <div class="adv-grid">
+      @for (adv of advantages; track adv.num) {
+        <article class="adv-card">
+          <span class="adv-num">{{ adv.num }}</span>
+          <h3>{{ adv.title }}</h3>
+          <p>{{ adv.text }}</p>
+        </article>
+      }
+    </div>
+
+    <div class="founders">
+      <div class="founders-copy">
+        <p class="f-kicker">{{ founders.role }}</p>
+        <h3>{{ founders.names }}</h3>
+        <p>{{ founders.bio }}</p>
+      </div>
+      <div class="founders-stats">
+        @for (s of founders.stats; track s.label) {
+          <div class="f-stat">
+            <strong>{{ s.value }}</strong>
+            <span>{{ s.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec sec--soft" id="more" reveal>
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">Также в ARALA</p>
+      <h2 class="sec-title">Другие направления <em>и визы</em></h2>
+    </header>
+
+    <div class="offerings">
+      @for (o of offerings; track o.id) {
+        <article class="off-card">
+          <span class="off-tag">{{ o.tag }}</span>
+          <h3>{{ o.title }}</h3>
+          <p class="off-meta">{{ o.meta }}</p>
+          <p class="off-desc">{{ o.description }}</p>
+          <div class="off-foot">
+            <strong>{{ o.price }}</strong>
+            <a [href]="offeringWa(o.phone, o.waText)" target="_blank" rel="noreferrer" class="off-link">
+              Узнать в WhatsApp →
+            </a>
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="guide-banner">
+      <div>
+        <span class="g-kicker">Личный кабинет участника</span>
+        <h3>Закрытый визовый гайд открывается после оплаты</h3>
+        <p>
+          Шенген с нуля, пакет документов, подача в Италию, разбор сборов под ручную кладь 5–7 кг и Альпы — всё собрано
+          по шагам в вашем кабинете.
+        </p>
+      </div>
+      <a routerLink="/guide" class="btn btn--dark">Перейти в гайд</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="book" reveal>
+  <div class="wrap">
+    <div class="book-box">
+      <div class="book-copy">
+        <p class="sec-kicker">Запись в группу</p>
+        <h2 class="sec-title">Готовы увидеть Европу <em>по-настоящему?</em></h2>
+        <p class="book-lead">
+          Оставьте заявку — ответим в тот же день, расскажем про свободные места и поможем начать подготовку к визе.
+          Или напишите напрямую в WhatsApp.
+        </p>
+
+        <div class="book-links">
+          <a [href]="waDirectUrl" target="_blank" rel="noreferrer" class="btn btn--dark">WhatsApp · +7 706 608 9508</a>
+          <a [href]="ig" target="_blank" rel="noreferrer" class="btn btn--ghost">Instagram @arala.tours</a>
+        </div>
+        <p class="book-visa-note">
+          Нужна только виза или индивидуальный маршрут?
+          <a [href]="waVisaUrl" target="_blank" rel="noreferrer">Напишите на +7 777 205 7252 →</a>
+        </p>
+      </div>
+
+      @if (sent()) {
+        <div class="book-thanks">
+          <span class="ok-badge">✓ Заявка отправлена</span>
+          <h3>Скоро свяжемся с вами!</h3>
+          <p>Если хотите получить программу и свободные места моментально — откройте чат в WhatsApp:</p>
+          <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--primary">
+            Продублировать в WhatsApp
+          </a>
+        </div>
+      } @else {
+        <form class="book-form" [formGroup]="form" (ngSubmit)="submit()">
+          <label>
+            Ваше имя
+            <input formControlName="name" placeholder="Как к вам обращаться" autocomplete="name" />
+          </label>
+          <div class="two">
+            <label>
+              Телефон / WhatsApp
+              <input formControlName="phone" placeholder="+7 7XX XXX XX XX" autocomplete="tel" />
+            </label>
+            <label>
+              Telegram
+              <input formControlName="telegram" placeholder="@username" />
+            </label>
+          </div>
+          <label>
+            Даты Классического Евротура
+            <select formControlName="wave">
+              @for (w of waves; track w.id) {
+                <option [value]="w.dates + ' (' + w.price + ')'">
+                  {{ w.dates }} — {{ w.price }} ({{ w.duration }})
+                </option>
+              }
+              <option value="Помогите выбрать даты">Помогите выбрать даты</option>
+            </select>
+          </label>
+          <label>
+            Сообщение
+            <textarea formControlName="message" rows="3"></textarea>
+          </label>
+          @if (err()) {
+            <p class="form-err">{{ err() }}</p>
+          }
+          <div class="form-actions">
+            <button type="submit" class="btn btn--primary" [disabled]="sending()">
+              {{ sending() ? 'Отправляем…' : 'Оставить заявку' }}
+            </button>
+            <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--ghost">Написать в WhatsApp</a>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</section>
+
+<app-booking-modal />

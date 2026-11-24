@@ -3,84 +3,131 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth';
+import { AralaLogo } from '../shared/arala-logo';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AralaLogo],
   template: `
-    <section class="wrap">
-      <h1>Войти</h1>
-      @if (locked()) {
-        <p class="note">
-          Гайд открывается после покупки тура. Мы создаём аккаунт вручную и присылаем доступ.
-          Нет логина — <a href="/#book">запишитесь</a>.
-        </p>
-      } @else {
-        <p class="note">Аккаунт выдаём после оплаты. Самостоятельно зарегистрироваться нельзя.</p>
-      }
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <label>Email<input formControlName="email" type="email" autocomplete="username" /></label>
-        <label>Пароль<input formControlName="password" type="password" autocomplete="current-password" /></label>
-        @if (err()) {
-          <p class="err">{{ err() }}</p>
+    <section class="page">
+      <div class="card">
+        <app-arala-logo variant="badge" />
+        <h1>Личный кабинет</h1>
+        @if (locked()) {
+          <p class="note">
+            Визовый гайд ARALA открывается после оплаты тура. Мы создаём аккаунт вручную и присылаем доступ. Нет логина
+            — <a routerLink="/" fragment="book">оставьте заявку</a>.
+          </p>
+        } @else {
+          <p class="note">Доступ выдаём участникам тура после оплаты. Самостоятельно зарегистрироваться нельзя.</p>
         }
-        <button type="submit" [disabled]="busy()">Продолжить</button>
-      </form>
-      <a routerLink="/">На главную</a>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <label>
+            Email
+            <input formControlName="email" type="email" autocomplete="username" placeholder="you@example.com" />
+          </label>
+          <label>
+            Пароль
+            <input formControlName="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+          </label>
+          @if (err()) {
+            <p class="err">{{ err() }}</p>
+          }
+          <button type="submit" class="btn btn--primary" [disabled]="busy()">
+            {{ busy() ? 'Входим…' : 'Продолжить' }}
+          </button>
+        </form>
+
+        <a routerLink="/" class="back">← Вернуться на главную</a>
+      </div>
     </section>
   `,
   styles: `
-    .wrap {
-      min-height: 100svh;
+    .page {
+      min-height: calc(100svh - 140px);
       display: grid;
-      place-content: center;
-      padding: 120px 20px 80px;
+      place-items: center;
+      padding: 120px 16px 60px;
+    }
+
+    .card {
+      width: min(460px, 100%);
+      padding: 36px 32px;
+      border-radius: var(--r-xl);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
     }
+
     h1 {
-      font-size: 56px;
-      letter-spacing: -0.05em;
-      margin: 0 0 16px;
+      margin: 20px 0 10px;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
     }
+
     .note {
-      color: #86868b;
-      max-width: 420px;
-      margin: 0 auto 28px;
-      line-height: 1.5;
+      margin: 0 0 24px;
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: var(--text-muted);
     }
+
+    .note a {
+      color: var(--ruby);
+      font-weight: 700;
+    }
+
     form {
+      width: 100%;
       display: grid;
-      gap: 12px;
-      width: min(420px, 100%);
-      margin: 0 auto 24px;
+      gap: 14px;
       text-align: left;
+      margin-bottom: 20px;
     }
+
     label {
       display: grid;
       gap: 6px;
-      font-size: 12px;
-      color: #86868b;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-muted);
     }
+
     input {
-      background: rgb(255 255 255 / 0.04);
-      border: 1px solid rgb(255 255 255 / 0.12);
-      border-radius: 14px;
+      width: 100%;
       padding: 12px 14px;
-      color: #fff;
-      font: inherit;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
     }
-    button {
-      margin-top: 8px;
-      border: 0;
-      border-radius: 980px;
-      padding: 12px;
-      background: #f5f5f7;
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
+
+    input:focus {
+      border-color: var(--ruby);
+      background: #ffffff;
     }
-    .err { color: #ff8a80; }
-    a { color: #f5f5f7; }
+
+    .err {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--danger);
+    }
+
+    .back {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--alpine);
+      text-decoration: none;
+    }
   `,
 })
 export class Login {
@@ -104,7 +151,7 @@ export class Login {
   submit() {
     this.err.set('');
     if (this.form.invalid) {
-      this.err.set('Введите email и пароль');
+      this.err.set('Введите корректный email и пароль');
       return;
     }
     this.busy.set(true);
@@ -122,7 +169,7 @@ export class Login {
         }
         this.busy.set(false);
         this.locked.set(true);
-        this.err.set('Аккаунт есть, но гайд ещё закрыт. Напишите нам.');
+        this.err.set('Аккаунт есть, но доступ к гайду ещё закрыт. Напишите нам в WhatsApp.');
       },
       error: (e: HttpErrorResponse) => {
         this.busy.set(false);

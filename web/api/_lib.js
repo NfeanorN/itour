@@ -2,25 +2,25 @@ const { createHmac, timingSafeEqual } = require('node:crypto');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const SECRET = process.env.JWT_SECRET || 'itour-dev-secret-change-me';
+const SECRET = process.env.JWT_SECRET || 'arala-dev-secret-change-me';
 
 function store() {
-  if (!globalThis.__itour) {
-    globalThis.__itour = {
+  if (!globalThis.__arala) {
+    globalThis.__arala = {
       seq: 3,
       users: [
         {
           id: 1,
-          email: 'admin@itour.kz',
-          name: 'Админ',
+          email: 'admin@arala.tours',
+          name: 'Админ ARALA',
           role: 'admin',
           tourAccess: true,
-          password: 'iTourAdmin2026!',
+          password: process.env.ADMIN_PASSWORD || 'AralaAdmin2026!',
           createdAt: new Date().toISOString(),
         },
         {
           id: 2,
-          email: 'guest@itour.kz',
+          email: 'guest@arala.tours',
           name: 'Путешественник',
           role: 'traveler',
           tourAccess: true,
@@ -31,7 +31,7 @@ function store() {
       leads: [],
     };
   }
-  return globalThis.__itour;
+  return globalThis.__arala;
 }
 
 function b64url(input) {

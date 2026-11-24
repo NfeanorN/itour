@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   inject,
@@ -8,44 +9,36 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
-import { CITIES, LEGS, type City } from '../data/tour';
+import { CITIES, LEGS, type CityPoint, type Leg } from '../data/tour';
+import {
+  buildTelemetryPaths,
+  cameraZoomForPhase,
+  craftSpeed,
+  flightAltitude,
+  formatDuration,
+  railElevation,
+  statusForPhase,
+  type PhaseStatus,
+  type TelemetrySample,
+} from './telemetry';
 
-type Beat =
-  | { kind: 'overview'; title: string; text: string; ms: number }
-  | { kind: 'dwell'; city: string; title: string; text: string; ms: number }
-  | { kind: 'leg'; index: number; title: string; text: string; ms: number };
+const CITY_MAP = new Map<string, CityPoint>(CITIES.map((c) => [c.id, c]));
 
-const TIMELINE: Beat[] = [
-  { kind: 'overview', title: 'Весь маршрут', text: 'Алматы, Италия, Франция, Швейцария — и домой.', ms: 3000 },
-  { kind: 'dwell', city: 'almaty', title: 'Алматы', text: 'Собираемся. Дальше — Рим, с одной стыковкой.', ms: 2200 },
-  { kind: 'leg', index: 0, title: 'Летим в Рим', text: 'Ночь над Каспием. Стыковка впереди.', ms: 5200 },
-  { kind: 'dwell', city: 'istanbul', title: 'Пересадка', text: 'Коридор, кофе — и снова в воздух.', ms: 1400 },
-  { kind: 'leg', index: 1, title: 'Летим в Рим', text: 'Второй борт. Утром уже Италия.', ms: 3600 },
-  { kind: 'dwell', city: 'rome', title: 'Рим', text: 'Колизей, Ватикан, ужин в Трастевере.', ms: 2600 },
-  { kind: 'leg', index: 2, title: 'Поезд в Венецию', text: 'Пара часов — и город на воде.', ms: 2600 },
-  { kind: 'dwell', city: 'venice', title: 'Венеция', text: 'Каналы, цикетти, площадь Сан-Марко.', ms: 2400 },
-  { kind: 'leg', index: 3, title: 'Летим в Париж', text: 'Короткий перелёт. Другой свет за окном.', ms: 4200 },
-  { kind: 'dwell', city: 'paris', title: 'Париж', text: 'Башня на закате, кафе, набережные.', ms: 2400 },
-  { kind: 'leg', index: 4, title: 'Поезд в Цюрих', text: 'Франция сменяется Швейцарией.', ms: 2600 },
-  { kind: 'dwell', city: 'zurich', title: 'Цюрих', text: 'Озеро, старый город, спокойствие.', ms: 2200 },
-  { kind: 'leg', index: 5, title: 'Поезд в Альпы', text: 'Сорок минут — и стена водопадов.', ms: 2200 },
-  { kind: 'dwell', city: 'lauterbrunnen', title: 'Лаутербруннен', text: 'Долина, ради которой едут в горы.', ms: 2600 },
-  { kind: 'leg', index: 6, title: 'Обратно в Цюрих', text: 'Забираем чемоданы и едем в аэропорт.', ms: 1800 },
-  { kind: 'dwell', city: 'zurich', title: 'Цюрих', text: 'Вылет домой. Одна стыковка по пути.', ms: 2600 },
-  { kind: 'leg', index: 7, title: 'Летим домой', text: 'Сначала стыковка, потом ночной борт.', ms: 4000 },
-  { kind: 'dwell', city: 'istanbul', title: 'Пересадка', text: 'Последняя стыковка. Дальше — домой.', ms: 1400 },
-  { kind: 'leg', index: 8, title: 'Домой', text: 'Ночь над степью. Утром уже Алматы.', ms: 5600 },
-  { kind: 'dwell', city: 'almaty', title: 'Алматы', text: 'Маршрут закрыт. Можно смотреть ещё раз.', ms: 2400 },
+const COUNTRY_LABELS: Array<{ name: string; lat: number; lon: number }> = [
+  { name: 'ITALY', lat: 43.3, lon: 12.6 },
+  { name: 'FRANCE', lat: 46.7, lon: 2.5 },
+  { name: 'SWITZERLAND', lat: 46.85, lon: 8.2 },
+  { name: 'GERMANY', lat: 50.6, lon: 10.3 },
+  { name: 'AUSTRIA', lat: 47.6, lon: 14.2 },
+  { name: 'TURKEY', lat: 39.2, lon: 34.5 },
+  { name: 'KAZAKHSTAN', lat: 46.8, lon: 66.5 },
 ];
 
-const DURATION = TIMELINE.reduce((s, b) => s + b.ms, 0);
+const DWELL_MS = 950;
+const OVERVIEW_MS = 1800;
 
-function destIds() {
-  return CITIES.filter((c) => c.id !== 'istanbul').map((c) => c.id);
-}
-
-function cityOf(id: string): City {
-  return CITIES.find((c) => c.id === id)!;
+function cityOf(id: string): CityPoint {
+  return CITY_MAP.get(id)!;
 }
 
 function ll(id: string): L.LatLng {
@@ -53,24 +46,11 @@ function ll(id: string): L.LatLng {
   return L.latLng(c.lat, c.lon);
 }
 
-function p(lat: number, lng: number) {
-  return L.latLng(lat, lng);
+function pt(lat: number, lon: number): L.LatLng {
+  return L.latLng(lat, lon);
 }
 
-function ease(t: number) {
-  const x = Math.min(1, Math.max(0, t));
-  const a = 0.16;
-  if (x < a) {
-    return (x / a) * (x / a) * a;
-  }
-  if (x > 1 - a) {
-    const u = (1 - x) / a;
-    return 1 - u * u * a;
-  }
-  return x;
-}
-
-function haversine(a: L.LatLng, b: L.LatLng) {
+function haversine(a: L.LatLng, b: L.LatLng): number {
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
@@ -81,43 +61,48 @@ function haversine(a: L.LatLng, b: L.LatLng) {
 }
 
 function toXYZ(lat: number, lng: number) {
-  const φ = (lat * Math.PI) / 180;
-  const λ = (lng * Math.PI) / 180;
-  return { x: Math.cos(φ) * Math.cos(λ), y: Math.cos(φ) * Math.sin(λ), z: Math.sin(φ) };
+  const phi = (lat * Math.PI) / 180;
+  const lam = (lng * Math.PI) / 180;
+  return { x: Math.cos(phi) * Math.cos(lam), y: Math.cos(phi) * Math.sin(lam), z: Math.sin(phi) };
 }
 
-function fromXYZ(v: { x: number; y: number; z: number }) {
+function fromXYZ(v: { x: number; y: number; z: number }): L.LatLng {
   return L.latLng(
     (Math.atan2(v.z, Math.hypot(v.x, v.y)) * 180) / Math.PI,
     (Math.atan2(v.y, v.x) * 180) / Math.PI,
   );
 }
 
-function greatCircle(a: L.LatLng, b: L.LatLng, steps: number) {
+function greatCircle(a: L.LatLng, b: L.LatLng, steps: number): L.LatLng[] {
   const va = toXYZ(a.lat, a.lng);
   const vb = toXYZ(b.lat, b.lng);
-  let dot = va.x * vb.x + va.y * vb.y + va.z * vb.z;
-  dot = Math.min(1, Math.max(-1, dot));
-  const ω = Math.acos(dot);
-  const out: L.LatLng[] = [];
-  if (ω < 1e-6 || steps < 2) {
+  const dot = Math.min(1, Math.max(-1, va.x * vb.x + va.y * vb.y + va.z * vb.z));
+  const omega = Math.acos(dot);
+  if (omega < 1e-6 || steps < 2) {
     return [a, b];
   }
-  const sinω = Math.sin(ω);
+  const sinO = Math.sin(omega);
+  const out: L.LatLng[] = [];
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
-    const s1 = Math.sin((1 - t) * ω) / sinω;
-    const s2 = Math.sin(t * ω) / sinω;
-    out.push(fromXYZ({ x: va.x * s1 + vb.x * s2, y: va.y * s1 + vb.y * s2, z: va.z * s1 + vb.z * s2 }));
+    const s1 = Math.sin((1 - t) * omega) / sinO;
+    const s2 = Math.sin(t * omega) / sinO;
+    out.push(
+      fromXYZ({
+        x: va.x * s1 + vb.x * s2,
+        y: va.y * s1 + vb.y * s2,
+        z: va.z * s1 + vb.z * s2,
+      }),
+    );
   }
   return out;
 }
 
-function stitch(waypoints: L.LatLng[]) {
+function stitchFlight(waypoints: L.LatLng[]): L.LatLng[] {
   const pts: L.LatLng[] = [];
   for (let i = 0; i < waypoints.length - 1; i++) {
     const km = haversine(waypoints[i], waypoints[i + 1]);
-    const steps = Math.max(18, Math.round(km / 12));
+    const steps = Math.max(24, Math.round(km / 18));
     const seg = greatCircle(waypoints[i], waypoints[i + 1], steps);
     if (i > 0) {
       seg.shift();
@@ -127,12 +112,12 @@ function stitch(waypoints: L.LatLng[]) {
   return pts;
 }
 
-function densify(waypoints: L.LatLng[], everyKm: number) {
+function densifyRail(waypoints: L.LatLng[], everyKm: number): L.LatLng[] {
   const pts: L.LatLng[] = [];
   for (let i = 0; i < waypoints.length - 1; i++) {
     const a = waypoints[i];
     const b = waypoints[i + 1];
-    const steps = Math.max(2, Math.round(haversine(a, b) / everyKm));
+    const steps = Math.max(8, Math.round(haversine(a, b) / everyKm));
     for (let s = 0; s < steps; s++) {
       const t = s / steps;
       pts.push(L.latLng(a.lat + (b.lat - a.lat) * t, a.lng + (b.lng - a.lng) * t));
@@ -142,11 +127,15 @@ function densify(waypoints: L.LatLng[], everyKm: number) {
   return pts;
 }
 
-function clonePath(path: L.LatLng[]) {
-  return path.map((q) => L.latLng(q.lat, q.lng));
+function cumulativeKm(path: L.LatLng[]): number[] {
+  const acc = [0];
+  for (let i = 1; i < path.length; i++) {
+    acc.push(acc[i - 1] + haversine(path[i - 1], path[i]));
+  }
+  return acc;
 }
 
-function along(path: L.LatLng[], dist: number[], t: number): L.LatLng {
+function sampleAlong(path: L.LatLng[], dist: number[], t: number): L.LatLng {
   const target = Math.min(1, Math.max(0, t)) * dist[dist.length - 1];
   let i = 1;
   while (i < dist.length && dist[i] < target) {
@@ -159,8 +148,8 @@ function along(path: L.LatLng[], dist: number[], t: number): L.LatLng {
   return L.latLng(a.lat + (b.lat - a.lat) * f, a.lng + (b.lng - a.lng) * f);
 }
 
-function prefix(path: L.LatLng[], dist: number[], t: number) {
-  const end = along(path, dist, t);
+function slicePrefix(path: L.LatLng[], dist: number[], t: number): L.LatLng[] {
+  const end = sampleAlong(path, dist, t);
   const target = Math.min(1, Math.max(0, t)) * dist[dist.length - 1];
   const out: L.LatLng[] = [L.latLng(path[0].lat, path[0].lng)];
   for (let i = 1; i < path.length; i++) {
@@ -169,19 +158,11 @@ function prefix(path: L.LatLng[], dist: number[], t: number) {
     }
     out.push(L.latLng(path[i].lat, path[i].lng));
   }
-  out.push(L.latLng(end.lat, end.lng));
+  out.push(end);
   return out;
 }
 
-function lengths(path: L.LatLng[]) {
-  const acc = [0];
-  for (let i = 1; i < path.length; i++) {
-    acc.push(acc[i - 1] + haversine(path[i - 1], path[i]));
-  }
-  return acc;
-}
-
-function bearing(a: L.LatLng, b: L.LatLng) {
+function bearingDeg(a: L.LatLng, b: L.LatLng): number {
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
   const lat1 = (a.lat * Math.PI) / 180;
   const lat2 = (b.lat * Math.PI) / 180;
@@ -190,46 +171,56 @@ function bearing(a: L.LatLng, b: L.LatLng) {
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
 }
 
-function lerpAngle(from: number, to: number, k: number) {
+function lerpAngle(from: number, to: number, k: number): number {
   const d = ((((to - from) % 360) + 540) % 360) - 180;
   return (((from + d * k) % 360) + 360) % 360;
 }
 
-const AIRWAYS: Record<string, L.LatLng[]> = {
-  'almaty-istanbul': stitch([
-    ll('almaty'),
-    p(43.9, 70.1),
-    p(44.55, 62.2),
-    p(43.95, 51.4),
-    p(42.6, 40.2),
-    ll('istanbul'),
-  ]),
-  'istanbul-rome': stitch([ll('istanbul'), p(40.2, 26.3), p(40.55, 19.4), ll('rome')]),
-  'rome-venice': densify([ll('rome'), p(43.77, 11.25), p(44.49, 11.34), ll('venice')], 8),
-  'venice-paris': densify([ll('venice'), p(45.46, 9.19), p(45.07, 7.69), p(45.76, 4.84), p(47.4, 3.3), ll('paris')], 10),
-  'paris-zurich': densify(
-    [ll('paris'), p(48.59, 3.55), p(48.1, 4.8), p(47.32, 5.04), p(47.4, 6.8), p(47.56, 7.59), ll('zurich')],
-    8,
-  ),
-  'zurich-lauterbrunnen': densify([ll('zurich'), p(47.05, 8.31), p(46.69, 7.86), ll('lauterbrunnen')], 6),
-  'lauterbrunnen-zurich': densify([ll('lauterbrunnen'), p(46.69, 7.86), p(47.05, 8.31), ll('zurich')], 6),
-  'zurich-istanbul': stitch([ll('zurich'), p(45.7, 15.9), p(43.1, 21.2), ll('istanbul')]),
-  'istanbul-almaty': stitch([
-    ll('istanbul'),
-    p(42.6, 40.2),
-    p(43.95, 51.4),
-    p(44.55, 62.2),
-    p(43.9, 70.1),
-    ll('almaty'),
-  ]),
-};
-
-function pathOf(leg: { from: string; to: string }) {
-  return AIRWAYS[`${leg.from}-${leg.to}`] ?? stitch([ll(leg.from), ll(leg.to)]);
+function easeRoute(t: number): number {
+  const x = Math.min(1, Math.max(0, t));
+  return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 }
 
-const PLANE_SVG = `<svg class="ico-plane" viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
-const TRAIN_SVG = `<svg class="ico-train" viewBox="0 0 32 64" aria-hidden="true"><path fill="#fff" d="M16 2c-5.2 0-9 4.4-9 10.2v39.6C7 57.6 10.8 62 16 62s9-4.4 9-10.2V12.2C25 6.4 21.2 2 16 2zm0 6.2c1.8 0 3.2 1.2 3.2 2.7S17.8 13.6 16 13.6 12.8 12.4 12.8 10.9 14.2 8.2 16 8.2zM11.4 20h9.2c.7 0 1.2.5 1.2 1.2v5.2c0 .7-.5 1.2-1.2 1.2h-9.2c-.7 0-1.2-.5-1.2-1.2v-5.2c0-.7.5-1.2 1.2-1.2zm0 12h9.2c.7 0 1.2.5 1.2 1.2v5.2c0 .7-.5 1.2-1.2 1.2h-9.2c-.7 0-1.2-.5-1.2-1.2v-5.2c0-.7.5-1.2 1.2-1.2z"/></svg>`;
+const CORRIDORS: Record<string, L.LatLng[]> = {
+  'ala-ist': stitchFlight([ll('almaty'), pt(44.2, 68.4), pt(44.8, 59.5), pt(43.8, 49.2), pt(42.4, 38.8), ll('istanbul')]),
+  'ist-mxp': stitchFlight([ll('istanbul'), pt(42.1, 22.8), pt(44.3, 15.6), ll('milan')]),
+  'mxp-vce': densifyRail([ll('milan'), pt(45.54, 10.21), pt(45.44, 10.99), pt(45.41, 11.88), ll('venice')], 10),
+  'vce-fco': densifyRail([ll('venice'), pt(44.49, 11.34), pt(43.77, 11.25), pt(42.75, 12.11), ll('rome')], 12),
+  'fco-cdg': stitchFlight([ll('rome'), pt(44.4, 8.9), pt(46.2, 6.1), ll('paris')]),
+  'cdg-bsl': densifyRail([ll('paris'), pt(48.3, 4.1), pt(47.32, 5.04), pt(47.64, 6.86), ll('basel')], 10),
+  'bsl-zrh': densifyRail([ll('basel'), pt(47.48, 8.05), ll('zurich')], 6),
+  'zrh-lbr': densifyRail([ll('zurich'), pt(47.05, 8.31), pt(46.69, 7.86), ll('lauterbrunnen')], 5),
+  'lbr-zrh': densifyRail([ll('lauterbrunnen'), pt(46.69, 7.86), pt(47.05, 8.31), ll('zurich')], 5),
+  'zrh-ist': stitchFlight([ll('zurich'), pt(45.7, 15.9), pt(43.4, 22.1), ll('istanbul')]),
+  'ist-ala': stitchFlight([ll('istanbul'), pt(42.4, 38.8), pt(43.8, 49.2), pt(44.8, 59.5), pt(44.2, 68.4), ll('almaty')]),
+};
+
+const PLANE_SVG = `<svg class="ico-plane" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
+const TRAIN_SVG = `<svg class="ico-train" viewBox="0 0 28 54" aria-hidden="true"><rect x="6" y="3" width="16" height="48" rx="8" fill="currentColor"/><rect x="9.5" y="9" width="9" height="6" rx="2" fill="#080D18"/><rect x="9.5" y="19" width="9" height="8" rx="1.5" fill="#080D18" opacity="0.72"/><rect x="9.5" y="31" width="9" height="8" rx="1.5" fill="#080D18" opacity="0.72"/></svg>`;
+
+interface SegmentWindow {
+  legIndex: number;
+  startMs: number;
+  moveEndMs: number;
+  endMs: number;
+}
+
+function buildSchedule(): { windows: SegmentWindow[]; totalMs: number } {
+  const windows: SegmentWindow[] = [];
+  let cursor = OVERVIEW_MS;
+  for (let i = 0; i < LEGS.length; i++) {
+    const startMs = cursor;
+    const moveEndMs = startMs + LEGS[i].ms;
+    const endMs = moveEndMs + DWELL_MS;
+    windows.push({ legIndex: i, startMs, moveEndMs, endMs });
+    cursor = endMs;
+  }
+  return { windows, totalMs: cursor };
+}
+
+const SCHEDULE = buildSchedule();
+const CHART_W = 600;
+const CHART_H = 62;
 
 @Component({
   selector: 'app-journey-map',
@@ -241,29 +232,68 @@ export class JourneyMap {
   private readonly destroyRef = inject(DestroyRef);
   private readonly mapEl = viewChild<ElementRef<HTMLDivElement>>('map');
 
-  readonly title = signal('Весь маршрут');
-  readonly text = signal('Алматы, Италия, Франция, Швейцария — и домой.');
-  readonly mode = signal<'plane' | 'train' | 'layover' | ''>('');
-  readonly done = signal(false);
+  readonly legs = LEGS;
+  readonly activeLegIndex = signal(0);
+  readonly legProgress = signal(0);
   readonly playing = signal(false);
+  readonly done = signal(false);
+  readonly reducedMotion = signal(false);
+
+  readonly distanceKm = signal(0);
+  readonly totalTraveledKm = signal(0);
+  readonly altitudeM = signal(0);
+  readonly speedKmh = signal(0);
+  readonly elapsedLabel = signal('0m');
+  readonly status = signal<PhaseStatus>({ label: 'НА ПОЛОСЕ', tone: 'ground' });
+  readonly altPath = signal('');
+  readonly altArea = signal('');
+  readonly speedPath = signal('');
+
+  readonly currentLeg = computed<Leg>(() => LEGS[this.activeLegIndex()] ?? LEGS[0]);
+  readonly fromCity = computed<CityPoint>(() => cityOf(this.currentLeg().from));
+  readonly toCity = computed<CityPoint>(() => cityOf(this.currentLeg().to));
+  readonly legNumberLabel = computed(() => `${String(this.activeLegIndex() + 1).padStart(2, '0')} / ${LEGS.length}`);
+  readonly progressPct = computed(() => Math.round(this.legProgress() * 100));
 
   private map?: L.Map;
   private vehicle?: L.Marker;
-  private traveled: L.Polyline[] = [];
+  private glowLines: L.Polyline[] = [];
+  private coreLines: L.Polyline[] = [];
   private paths: L.LatLng[][] = [];
   private dists: number[][] = [];
-  private heading = 0;
   private cityMarks = new Map<string, L.Marker>();
   private raf = 0;
-  private origin = 0;
+  private initRaf = 0;
+  private elapsedMs = 0;
+  private lastTs = 0;
   private started = false;
-  private beatAt = -1;
-  private camKey = '';
+  private heading = 0;
+  private snapHeading = true;
+  private camLat = 45.5;
+  private camLng = 18;
+  private camZoom = 4.2;
+  private camInit = false;
 
   constructor() {
     afterNextRender(() => {
-      this.build();
-      const io = new IntersectionObserver(
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.reducedMotion.set(reduced);
+      this.buildMap();
+
+      let io: IntersectionObserver | undefined;
+      this.destroyRef.onDestroy(() => {
+        io?.disconnect();
+        cancelAnimationFrame(this.initRaf);
+        cancelAnimationFrame(this.raf);
+        this.map?.remove();
+      });
+
+      if (reduced) {
+        this.renderStaticLeg(1);
+        return;
+      }
+
+      io = new IntersectionObserver(
         (entries) => {
           if (entries.some((e) => e.isIntersecting) && !this.started) {
             this.started = true;
@@ -271,36 +301,85 @@ export class JourneyMap {
             this.replay();
           }
         },
-        { threshold: 0.32 },
+        { threshold: 0.25 },
       );
       io.observe(this.host.nativeElement);
-      this.destroyRef.onDestroy(() => {
-        io.disconnect();
-        cancelAnimationFrame(this.raf);
-        this.map?.remove();
-      });
     });
   }
 
-  replay() {
-    cancelAnimationFrame(this.raf);
-    this.done.set(false);
+  togglePlay(): void {
+    if (this.reducedMotion()) {
+      const next = (this.activeLegIndex() + 1) % LEGS.length;
+      this.renderStaticLeg(next);
+      return;
+    }
+    if (this.done()) {
+      this.replay();
+      return;
+    }
+    if (this.playing()) {
+      cancelAnimationFrame(this.raf);
+      this.playing.set(false);
+      this.map?.dragging.enable();
+      return;
+    }
     this.playing.set(true);
-    this.beatAt = -1;
-    this.camKey = '';
-    this.heading = 0;
-    this.origin = performance.now();
     this.map?.dragging.disable();
-    this.traveled.forEach((line) => line.setLatLngs([]));
-    this.setCraftVisible(false);
-    this.tick();
+    this.lastTs = performance.now();
+    this.raf = requestAnimationFrame(this.tick);
   }
 
-  private build() {
+  replay(): void {
+    cancelAnimationFrame(this.initRaf);
+    cancelAnimationFrame(this.raf);
+    this.done.set(false);
+    this.elapsedMs = 0;
+    this.camInit = false;
+    this.heading = 0;
+    this.snapHeading = true;
+    this.clearTrails();
+    if (this.reducedMotion()) {
+      this.renderStaticLeg(0);
+      return;
+    }
+    this.playing.set(true);
+    this.map?.dragging.disable();
+    this.lastTs = performance.now();
+    this.applyAt(0);
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  jumpToLeg(index: number): void {
+    const safe = Math.max(0, Math.min(LEGS.length - 1, index));
+    cancelAnimationFrame(this.initRaf);
+    cancelAnimationFrame(this.raf);
+    this.started = true;
+    if (this.reducedMotion()) {
+      this.renderStaticLeg(safe);
+      return;
+    }
+    const win = SCHEDULE.windows[safe];
+    this.done.set(false);
+    this.elapsedMs = win.startMs + 20;
+    this.camInit = false;
+    this.snapHeading = true;
+    this.playing.set(true);
+    this.map?.dragging.disable();
+    this.lastTs = performance.now();
+    this.applyAt(this.elapsedMs);
+    this.raf = requestAnimationFrame(this.tick);
+  }
+
+  formatNum(val: number): string {
+    return val.toLocaleString('ru-RU');
+  }
+
+  private buildMap(): void {
     const el = this.mapEl()?.nativeElement;
     if (!el) {
       return;
     }
+
     const map = L.map(el, {
       zoomControl: false,
       attributionControl: true,
@@ -309,55 +388,84 @@ export class JourneyMap {
       doubleClickZoom: false,
       boxZoom: false,
       keyboard: false,
-      zoomSnap: 0.15,
+      zoomSnap: 0,
+      zoomAnimation: false,
       fadeAnimation: false,
-      zoomAnimation: true,
       markerZoomAnimation: false,
       worldCopyJump: false,
-      maxBounds: L.latLngBounds(p(18, -18), p(72, 98)),
-      maxBoundsViscosity: 0.7,
+      maxBounds: L.latLngBounds(pt(24, -14), pt(66, 90)),
+      maxBoundsViscosity: 0.8,
     });
-    const tiles = {
-      keepBuffer: 8,
-      updateWhenZooming: false,
-      updateWhenIdle: true,
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
       maxZoom: 16,
-    };
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      { ...tiles, attribution: 'Tiles &copy; Esri' },
-    ).addTo(map);
-    L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-      { ...tiles, opacity: 0.75 },
-    ).addTo(map);
+      keepBuffer: 6,
+      updateWhenIdle: false,
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+    }).addTo(map);
 
-    this.paths = LEGS.map((leg) => pathOf(leg));
-    this.dists = this.paths.map(lengths);
+    for (const c of COUNTRY_LABELS) {
+      L.marker(pt(c.lat, c.lon), {
+        icon: L.divIcon({
+          className: 'geo-label',
+          html: `<span>${c.name}</span>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+        interactive: false,
+      }).addTo(map);
+    }
 
-    this.paths.forEach((_, i) => {
-      this.traveled.push(
+    this.paths = LEGS.map((leg) => CORRIDORS[leg.id] ?? stitchFlight([ll(leg.from), ll(leg.to)]));
+    this.dists = this.paths.map(cumulativeKm);
+
+    // Subtle full-route ghost preview lines
+    this.paths.forEach((path, i) => {
+      L.polyline(path, {
+        color: LEGS[i].mode === 'plane' ? '#f43f5e' : '#c8a86b',
+        weight: 1.3,
+        opacity: 0.16,
+        dashArray: LEGS[i].mode === 'plane' ? '4 6' : undefined,
+        interactive: false,
+      }).addTo(map);
+
+      const isPlane = LEGS[i].mode === 'plane';
+      const stroke = isPlane ? '#f43f5e' : '#d8b778';
+      this.glowLines.push(
         L.polyline([], {
-          color: '#f4e4c1',
-          weight: LEGS[i].mode === 'plane' ? 2.8 : 3.4,
-          opacity: 0.96,
-          lineJoin: 'round',
+          color: stroke,
+          weight: isPlane ? 8 : 7,
+          opacity: 0.22,
           lineCap: 'round',
+          lineJoin: 'round',
           smoothFactor: 0,
+          interactive: false,
+        }).addTo(map),
+      );
+      this.coreLines.push(
+        L.polyline([], {
+          color: stroke,
+          weight: isPlane ? 2.6 : 3.0,
+          opacity: 0.96,
+          lineCap: 'round',
+          lineJoin: 'round',
+          smoothFactor: 0,
+          interactive: false,
         }).addTo(map),
       );
     });
 
     for (const c of CITIES) {
-      const hub = c.id === 'istanbul';
       const mark = L.marker(ll(c.id), {
         icon: L.divIcon({
-          className: `pin pin--${c.id}${hub ? ' pin--hub' : ''}`,
-          html: `<span class="pin-dot"></span><span class="pin-name">${hub ? 'пересадка' : c.name}</span>`,
+          className: `pin pin--${c.id}${c.hub ? ' pin--hub' : ''}`,
+          html: `<span class="pin-dot"></span><span class="pin-tag"><b>${c.code}</b><i>${c.hub ? 'стыковка' : c.name.split(' · ')[0]}</i></span>`,
           iconSize: [0, 0],
           iconAnchor: [0, 0],
         }),
         interactive: false,
+        zIndexOffset: c.hub ? 100 : 250,
       }).addTo(map);
       this.cityMarks.set(c.id, mark);
     }
@@ -366,229 +474,263 @@ export class JourneyMap {
       icon: L.divIcon({
         className: 'craft is-hidden',
         html: `<div class="craft-rot" data-kind="plane">${PLANE_SVG}${TRAIN_SVG}</div>`,
-        iconSize: [48, 48],
-        iconAnchor: [24, 24],
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
       }),
       interactive: false,
-      zIndexOffset: 600,
+      zIndexOffset: 700,
     }).addTo(map);
 
     this.map = map;
-    requestAnimationFrame(() => {
+    this.initRaf = requestAnimationFrame(() => {
       map.invalidateSize();
-      map.fitBounds(this.worldBounds(), { padding: [40, 40], maxZoom: 4.2, animate: false });
-      this.showCities(destIds(), 'almaty');
+      if (this.started || this.done()) {
+        return;
+      }
+      map.fitBounds(this.europeAndAlmatyBounds(), { padding: [28, 28], maxZoom: 4.1, animate: false });
+      this.highlightCities(CITIES.filter((c) => !c.hub).map((c) => c.id), 'almaty', 'milan');
     });
   }
 
-  private worldBounds() {
-    return L.latLngBounds(CITIES.map((c) => ll(c.id))).pad(0.16);
+  private europeAndAlmatyBounds(): L.LatLngBounds {
+    return L.latLngBounds(CITIES.map((c) => ll(c.id))).pad(0.14);
   }
 
-  private europeBounds() {
-    return L.latLngBounds(CITIES.filter((c) => c.id !== 'almaty' && c.id !== 'istanbul').map((c) => ll(c.id))).pad(0.32);
-  }
+  private tick = (now: number) => {
+    const dt = Math.min(64, Math.max(0, now - this.lastTs));
+    this.lastTs = now;
+    this.elapsedMs = Math.min(SCHEDULE.totalMs, this.elapsedMs + dt);
+    this.applyAt(this.elapsedMs);
 
-  private look(key: string, bounds: L.LatLngBounds, maxZoom: number, duration: number) {
-    if (this.camKey === key) {
-      return;
-    }
-    this.camKey = key;
-    this.map?.flyToBounds(bounds, { padding: [56, 56], maxZoom, duration, easeLinearity: 0.24 });
-  }
-
-  private tick = () => {
-    const ms = Math.min(DURATION, performance.now() - this.origin);
-    this.apply(ms);
-    if (ms >= DURATION) {
+    if (this.elapsedMs >= SCHEDULE.totalMs) {
       this.playing.set(false);
       this.done.set(true);
-      this.paths.forEach((path, i) => this.traveled[i].setLatLngs(clonePath(path)));
-      this.styleTrail('eu');
-      this.showCities(destIds(), 'almaty');
+      this.paintFullRoute();
       this.setCraftVisible(false);
+      this.status.set({ label: 'МАРШРУТ ЗАВЕРШЁН', tone: 'arrived' });
       this.map?.dragging.enable();
-      this.look('end', this.worldBounds(), 4.2, 1.8);
+      this.map?.fitBounds(this.europeAndAlmatyBounds(), { padding: [36, 36], maxZoom: 4.1, animate: false });
       return;
     }
+
     this.raf = requestAnimationFrame(this.tick);
   };
 
-  private apply(ms: number) {
-    const vehicle = this.vehicle;
-    if (!this.map || !vehicle) {
+  private applyAt(ms: number): void {
+    if (!this.map || !this.vehicle) {
       return;
     }
 
-    let acc = 0;
-    let beat = TIMELINE[0];
-    let local = 0;
-    for (const b of TIMELINE) {
-      if (ms <= acc + b.ms) {
-        beat = b;
-        local = (ms - acc) / b.ms;
+    if (ms < OVERVIEW_MS) {
+      this.activeLegIndex.set(0);
+      this.legProgress.set(0);
+      this.distanceKm.set(0);
+      this.totalTraveledKm.set(0);
+      this.altitudeM.set(LEGS[0].startElevM);
+      this.speedKmh.set(0);
+      this.elapsedLabel.set('0m');
+      this.status.set({ label: 'ВЕСЬ МАРШРУТ', tone: 'ground' });
+      this.updateChart(LEGS[0], 0);
+      this.setCraftVisible(false);
+      this.highlightCities(CITIES.filter((c) => !c.hub).map((c) => c.id), 'almaty', 'milan');
+      const bounds = this.europeAndAlmatyBounds();
+      const center = bounds.getCenter();
+      const fitZoom = Math.min(4.0, Math.max(1.8, this.map.getBoundsZoom(bounds, false, L.point(28, 28))));
+      this.moveCamera(center.lat, center.lng, fitZoom, 0.14);
+      return;
+    }
+
+    let win = SCHEDULE.windows[SCHEDULE.windows.length - 1];
+    for (const w of SCHEDULE.windows) {
+      if (ms <= w.endMs) {
+        win = w;
         break;
       }
-      acc += b.ms;
-      beat = b;
-      local = 1;
     }
 
-    const t = ease(Math.min(1, Math.max(0, local)));
-    this.title.set(beat.title);
-    this.text.set(beat.text);
-    const beatIndex = TIMELINE.indexOf(beat);
-    this.beatAt = beatIndex;
+    const legIdx = win.legIndex;
+    const leg = LEGS[legIdx];
+    const rawT = ms >= win.moveEndMs ? 1 : Math.min(1, Math.max(0, (ms - win.startMs) / leg.ms));
+    const t = easeRoute(rawT);
 
-    if (beat.kind === 'overview') {
-      this.mode.set('');
-      this.paintTrail(-1);
-      this.showCities(destIds(), 'almaty');
-      vehicle.setLatLng(ll('almaty'));
-      this.setCraftVisible(false);
-      this.look('world', this.worldBounds(), 4.2, 1.6);
+    this.activeLegIndex.set(legIdx);
+    this.legProgress.set(t);
+
+    const path = this.paths[legIdx];
+    const dist = this.dists[legIdx];
+    const pos = sampleAlong(path, dist, t);
+    const nextPos = sampleAlong(path, dist, Math.min(1, t + 0.015));
+
+    const prevTotal = LEGS.slice(0, legIdx).reduce((sum, item) => sum + item.distanceKm, 0);
+    const legKm = Math.round(leg.distanceKm * t);
+    this.distanceKm.set(legKm);
+    this.totalTraveledKm.set(prevTotal + legKm);
+
+    const alt =
+      leg.mode === 'plane'
+        ? flightAltitude(t, leg.maxAltitudeM)
+        : railElevation(t, leg.startElevM, leg.peakElevM, leg.endElevM);
+    const spd = craftSpeed(t, leg.maxSpeedKmh);
+    this.altitudeM.set(alt);
+    this.speedKmh.set(spd);
+    this.elapsedLabel.set(formatDuration(leg.durationMin * t));
+    this.status.set(statusForPhase(t, leg.mode, !!leg.alpine));
+    this.updateChart(leg, t);
+
+    // Draw trails
+    this.paintTrails(legIdx, slicePrefix(path, dist, t));
+
+    // Craft position & heading
+    const moving = ms < win.moveEndMs && t > 0.005 && t < 0.995;
+    this.vehicle.setLatLng(pos);
+    this.setCraftVisible(moving);
+    if (moving) {
+      this.setCraftVisual(leg.mode, bearingDeg(pos, nextPos));
+    }
+
+    // Highlight visible cities around active leg
+    const visible = this.visibleCitiesFor(legIdx);
+    this.highlightCities(visible, leg.from, leg.to);
+
+    // 3-phase F1 Jet Tracker dynamic camera:
+    // tight zoom at departure → pulls out smoothly over route at cruise → zooms back in tightly on landing
+    const zoomTarget = cameraZoomForPhase(t, leg.mode === 'plane', leg.overviewZoom);
+    const midLat = (cityOf(leg.from).lat + cityOf(leg.to).lat) / 2;
+    const midLng = (cityOf(leg.from).lon + cityOf(leg.to).lon) / 2;
+    const cruiseBlend = Math.sin(Math.PI * t);
+    const focusLat = pos.lat * (1 - 0.32 * cruiseBlend) + midLat * (0.32 * cruiseBlend);
+    const focusLng = pos.lng * (1 - 0.32 * cruiseBlend) + midLng * (0.32 * cruiseBlend);
+    this.moveCamera(focusLat, focusLng, zoomTarget, 0.12);
+  }
+
+  private renderStaticLeg(legIdx: number): void {
+    cancelAnimationFrame(this.initRaf);
+    const leg = LEGS[legIdx];
+    this.activeLegIndex.set(legIdx);
+    this.legProgress.set(1);
+    this.playing.set(false);
+    this.done.set(true);
+    const prevTotal = LEGS.slice(0, legIdx + 1).reduce((s, l) => s + l.distanceKm, 0);
+    this.distanceKm.set(leg.distanceKm);
+    this.totalTraveledKm.set(prevTotal);
+    this.altitudeM.set(leg.mode === 'plane' ? leg.maxAltitudeM : leg.endElevM);
+    this.speedKmh.set(leg.maxSpeedKmh);
+    this.elapsedLabel.set(formatDuration(leg.durationMin));
+    this.status.set({ label: leg.mode === 'plane' ? 'АВИАПЕРЕЛЁТ' : leg.alpine ? 'АЛЬПЫ 1 650 М' : 'ПОЕЗД', tone: leg.alpine ? 'alpine' : leg.mode === 'plane' ? 'air' : 'rail' });
+    this.updateChart(leg, 1);
+    this.paintFullRoute();
+    this.setCraftVisible(false);
+    this.highlightCities(CITIES.map((c) => c.id), leg.from, leg.to);
+    this.map?.dragging.enable();
+    const bounds = L.latLngBounds(this.paths[legIdx]).pad(0.24);
+    this.map?.fitBounds(bounds, { padding: [44, 44], maxZoom: leg.overviewZoom + 0.6, animate: false });
+  }
+
+  private moveCamera(lat: number, lng: number, zoom: number, factor: number): void {
+    if (!this.map) {
       return;
     }
-
-    if (beat.kind === 'dwell') {
-      this.mode.set(beat.city === 'istanbul' ? 'layover' : '');
-      vehicle.setLatLng(ll(beat.city));
-      this.setCraftVisible(false);
-      this.paintTrail(this.legsBefore(beatIndex));
-      this.showCities(this.pinsFor(beat, beatIndex), beat.city === 'istanbul' ? '' : beat.city);
-      if (beat.city === 'almaty') {
-        this.look(
-          beatIndex === 1 ? 'leg-0' : 'leg-8',
-          L.latLngBounds(this.paths[beatIndex === 1 ? 0 : 8]).pad(0.12),
-          4.7,
-          1.7,
-        );
-      } else if (beat.city === 'istanbul') {
-        const next = TIMELINE[beatIndex + 1];
-        const idx = next?.kind === 'leg' ? next.index : 1;
-        this.look(`leg-${idx}`, L.latLngBounds(this.paths[idx]).pad(0.14), 5.1, 1.5);
-        this.styleTrail(idx >= 7 ? 'home' : 'out');
-      } else if (beat.city === 'zurich' && this.legsBefore(beatIndex) >= 6) {
-        this.look('leg-7', L.latLngBounds(this.paths[7]).pad(0.14), 5.1, 2.1);
-        this.styleTrail('home');
-      } else {
-        this.look('eu', this.europeBounds(), 6.05, 1.8);
-        this.styleTrail('eu');
-      }
-      return;
-    }
-
-    const path = this.paths[beat.index];
-    const dist = this.dists[beat.index];
-    const pt = along(path, dist, t);
-    const nxt = along(path, dist, Math.min(1, t + 0.012));
-    const mode = LEGS[beat.index].mode;
-    this.mode.set(mode);
-    const hop = LEGS[beat.index];
-    let now = t > 0.78 ? hop.to : hop.from;
-    if (now === 'istanbul') {
-      now = hop.from === 'istanbul' ? hop.to : hop.from;
-    }
-    this.showCities(this.pinsFor(beat, beatIndex), now);
-    vehicle.setLatLng(pt);
-    this.setCraftVisible(true);
-    this.setCraft(mode, bearing(pt, nxt), true);
-    this.paintTrail(beat.index, prefix(path, dist, t));
-
-    if (beat.index === 0 || beat.index === 8) {
-      this.look(`leg-${beat.index}`, L.latLngBounds(path).pad(0.12), 4.7, 1.7);
-      this.styleTrail(beat.index === 8 ? 'home' : 'out');
-    } else if (beat.index === 1 || beat.index === 7) {
-      this.look(`leg-${beat.index}`, L.latLngBounds(path).pad(0.14), 5.1, 1.6);
-      this.styleTrail(beat.index === 7 ? 'home' : 'out');
+    if (!this.camInit) {
+      this.camLat = lat;
+      this.camLng = lng;
+      this.camZoom = zoom;
+      this.camInit = true;
     } else {
-      this.look('eu', this.europeBounds(), 6.05, 1.8);
-      this.styleTrail('eu');
+      this.camLat += (lat - this.camLat) * factor;
+      this.camLng += (lng - this.camLng) * factor;
+      this.camZoom += (zoom - this.camZoom) * factor;
     }
+    this.map.setView([this.camLat, this.camLng], this.camZoom, { animate: false });
   }
 
-  private pinsFor(beat: Beat, beatIndex: number) {
-    if (beat.kind === 'overview') {
-      return destIds();
+  private updateChart(leg: Leg, t: number): void {
+    const totalSamples = 42;
+    const count = Math.max(2, Math.round(totalSamples * Math.max(0.02, t)));
+    const samples: TelemetrySample[] = [];
+    for (let i = 0; i < count; i++) {
+      const f = i / (totalSamples - 1);
+      const alt =
+        leg.mode === 'plane'
+          ? flightAltitude(f, leg.maxAltitudeM)
+          : railElevation(f, leg.startElevM, leg.peakElevM, leg.endElevM);
+      samples.push({ alt, speed: craftSpeed(f, leg.maxSpeedKmh) });
     }
-    if (beat.kind === 'dwell' && beat.city === 'almaty') {
-      return beatIndex === 1 ? ['almaty', 'rome'] : ['almaty'];
-    }
-    if (beat.kind === 'dwell' && beat.city === 'istanbul') {
-      return ['istanbul', this.legsBefore(beatIndex) >= 7 ? 'almaty' : 'rome'];
-    }
-    if (beat.kind === 'dwell' && beat.city === 'zurich' && this.legsBefore(beatIndex) >= 6) {
-      return ['zurich', 'almaty'];
-    }
-    if (beat.kind === 'leg' && beat.index === 0) {
-      return ['almaty', 'istanbul', 'rome'];
-    }
-    if (beat.kind === 'leg' && beat.index === 1) {
-      return ['istanbul', 'rome'];
-    }
-    if (beat.kind === 'leg' && beat.index === 7) {
-      return ['zurich', 'istanbul', 'almaty'];
-    }
-    if (beat.kind === 'leg' && beat.index === 8) {
-      return ['istanbul', 'almaty'];
-    }
-    return CITIES.filter((c) => c.id !== 'almaty' && c.id !== 'istanbul').map((c) => c.id);
+    const maxAlt = Math.max(leg.maxAltitudeM, leg.startElevM, leg.endElevM, 500);
+    const built = buildTelemetryPaths(samples, maxAlt, Math.max(100, leg.maxSpeedKmh), CHART_W, CHART_H);
+    this.altPath.set(built.altLine);
+    this.altArea.set(built.altArea);
+    this.speedPath.set(built.speedLine);
   }
 
-  private legsBefore(beatIndex: number) {
-    return TIMELINE.filter((x) => x.kind === 'leg' && TIMELINE.indexOf(x) < beatIndex).length;
+  private visibleCitiesFor(legIdx: number): string[] {
+    if (legIdx <= 1 || legIdx >= 9) {
+      const leg = LEGS[legIdx];
+      return ['almaty', 'istanbul', 'milan', 'zurich', leg.from, leg.to];
+    }
+    return ['milan', 'venice', 'rome', 'paris', 'basel', 'zurich', 'lauterbrunnen'];
   }
 
-  private paintTrail(upToLeg: number, current?: L.LatLng[]) {
-    this.traveled.forEach((line, i) => {
-      if (i < upToLeg) {
-        line.setLatLngs(clonePath(this.paths[i]));
-      } else if (i === upToLeg && current?.length) {
-        line.setLatLngs(current);
+  private clearTrails(): void {
+    this.glowLines.forEach((l) => l.setLatLngs([]));
+    this.coreLines.forEach((l) => l.setLatLngs([]));
+  }
+
+  private paintFullRoute(): void {
+    this.paths.forEach((p, i) => {
+      this.glowLines[i]?.setLatLngs(p);
+      this.coreLines[i]?.setLatLngs(p);
+      this.coreLines[i]?.setStyle({ opacity: 0.9 });
+    });
+  }
+
+  private paintTrails(activeIndex: number, currentSlice: L.LatLng[]): void {
+    const returning = activeIndex >= 9;
+    this.paths.forEach((p, i) => {
+      if (i < activeIndex) {
+        this.glowLines[i].setLatLngs(p);
+        this.coreLines[i].setLatLngs(p);
+        const dim = returning && i < 9 ? 0.28 : 0.52;
+        this.coreLines[i].setStyle({ opacity: dim });
+        this.glowLines[i].setStyle({ opacity: dim * 0.25 });
+      } else if (i === activeIndex) {
+        this.glowLines[i].setLatLngs(currentSlice);
+        this.coreLines[i].setLatLngs(currentSlice);
+        this.coreLines[i].setStyle({ opacity: 1 });
+        this.glowLines[i].setStyle({ opacity: 0.28 });
       } else {
-        line.setLatLngs([]);
+        this.glowLines[i].setLatLngs([]);
+        this.coreLines[i].setLatLngs([]);
       }
     });
   }
 
-  private styleTrail(mood: 'eu' | 'out' | 'home') {
-    this.traveled.forEach((line, i) => {
-      if (mood === 'home') {
-        line.setStyle({
-          opacity: i >= 7 ? 0.96 : i <= 1 ? 0.28 : 0.1,
-          weight: i >= 7 ? 3 : 2,
-        });
-        return;
-      }
-      line.setStyle({
-        opacity: 0.96,
-        weight: LEGS[i].mode === 'plane' ? 2.8 : 3.4,
-      });
-    });
-  }
-
-  private showCities(active: string[], now: string) {
+  private highlightCities(visible: string[], fromId: string, toId: string): void {
     this.cityMarks.forEach((mark, key) => {
-      const root = mark.getElement();
-      if (!root) {
+      const el = mark.getElement();
+      if (!el) {
         return;
       }
-      root.classList.toggle('is-on', active.includes(key));
-      root.classList.toggle('is-now', key === now);
+      el.classList.toggle('is-on', visible.includes(key));
+      el.classList.toggle('is-active', key === fromId || key === toId);
     });
   }
 
-  private setCraftVisible(on: boolean) {
+  private setCraftVisible(on: boolean): void {
     this.vehicle?.getElement()?.classList.toggle('is-hidden', !on);
   }
 
-  private setCraft(kind: 'plane' | 'train', angle: number, smooth = true) {
-    const el = this.vehicle?.getElement()?.querySelector('.craft-rot') as HTMLElement | null;
-    if (!el) {
+  private setCraftVisual(kind: 'plane' | 'train', angle: number): void {
+    const rot = this.vehicle?.getElement()?.querySelector('.craft-rot') as HTMLElement | null;
+    if (!rot) {
       return;
     }
-    this.heading = smooth ? lerpAngle(this.heading, angle, kind === 'train' ? 0.32 : 0.14) : angle;
-    el.dataset['kind'] = kind;
-    el.style.transform = `rotate(${this.heading}deg)`;
+    if (this.snapHeading) {
+      this.heading = angle;
+      this.snapHeading = false;
+    } else {
+      this.heading = lerpAngle(this.heading, angle, kind === 'train' ? 0.3 : 0.16);
+    }
+    rot.dataset['kind'] = kind;
+    rot.style.transform = `rotate(${this.heading}deg)`;
   }
 }

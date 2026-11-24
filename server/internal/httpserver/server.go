@@ -82,12 +82,13 @@ func New(st *store.Store, guidesDir, staticDir string) http.Handler {
 
 func (s *Server) tour(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
-		"name":      "Eurotour",
-		"days":      12,
+		"brand":     "ARALA",
+		"name":      "Классический Евротур",
+		"days":      "9–11",
 		"from":      "Алматы",
-		"instagram": "https://www.instagram.com/qairattt_t.e/",
-		"whatsapp":  "https://wa.me/message/2UBIBW6WROJXP1",
-		"route":     []string{"Алматы", "Рим", "Венеция", "Париж", "Цюрих", "Лаутербруннен", "Алматы"},
+		"instagram": "https://www.instagram.com/arala.tours/",
+		"whatsapp":  "https://wa.me/77066089508",
+		"route":     []string{"Алматы", "Милан", "Венеция", "Рим (Ватикан)", "Париж", "Базель", "Цюрих", "Лаутербруннен", "Мюррен", "Алматы"},
 	})
 }
 

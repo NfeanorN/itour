@@ -8,22 +8,79 @@ import { renderMarkdown } from '../core/markdown';
   selector: 'app-guide-detail',
   imports: [RouterLink],
   template: `
-    <article class="wrap">
-      <a routerLink="/guide" class="back">Все гайды</a>
+    <article class="page wrap">
+      <a routerLink="/guide" class="back">← Все разделы гайда</a>
       @if (html()) {
-        <div class="md" [innerHTML]="html()"></div>
+        <div class="paper">
+          <div class="md" [innerHTML]="html()"></div>
+        </div>
       }
     </article>
   `,
   styles: `
-    .wrap { padding: 140px 36px 100px; max-width: 740px; margin: 0 auto; }
-    .back { color: #86868b; text-decoration: none; font-size: 14px; }
-    .md { margin-top: 28px; }
-    :host ::ng-deep .md h1 { font-size: 56px; letter-spacing: -0.05em; line-height: 1; margin: 0 0 24px; }
-    :host ::ng-deep .md h2 { font-size: 28px; margin: 36px 0 12px; letter-spacing: -0.03em; }
-    :host ::ng-deep .md p, :host ::ng-deep .md li { color: #d2d2d7; font-size: 18px; line-height: 1.55; }
-    :host ::ng-deep .md ul { padding-left: 18px; }
-    @media (max-width: 640px) { .wrap { padding: 120px 18px 60px; } :host ::ng-deep .md h1 { font-size: 36px; } }
+    .page {
+      padding-top: 118px;
+      padding-bottom: 56px;
+      max-width: 820px;
+    }
+
+    .back {
+      display: inline-flex;
+      margin-bottom: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--alpine);
+      text-decoration: none;
+    }
+
+    .paper {
+      padding: 40px 42px;
+      border-radius: var(--r-xl);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    :host ::ng-deep .md h1 {
+      margin: 0 0 20px;
+      font-size: clamp(30px, 5vw, 44px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      color: var(--text);
+    }
+
+    :host ::ng-deep .md h2 {
+      margin: 32px 0 12px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--ink-dark);
+    }
+
+    :host ::ng-deep .md p,
+    :host ::ng-deep .md li {
+      font-size: 16.5px;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    :host ::ng-deep .md strong {
+      color: var(--text);
+    }
+
+    :host ::ng-deep .md ul,
+    :host ::ng-deep .md ol {
+      padding-left: 20px;
+      display: grid;
+      gap: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .paper {
+        padding: 24px 20px;
+      }
+    }
   `,
 })
 export class GuideDetail {

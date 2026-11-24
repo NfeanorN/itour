@@ -86,7 +86,7 @@ func (s *Store) seed() error {
 	}
 	adminPass := os.Getenv("ADMIN_PASSWORD")
 	if adminPass == "" {
-		adminPass = "iTourAdmin2026!"
+		adminPass = "AralaAdmin2026!"
 	}
 	adminHash, err := auth.HashPassword(adminPass)
 	if err != nil {
@@ -101,8 +101,8 @@ func (s *Store) seed() error {
 INSERT INTO users (email, name, password_hash, role, tour_access, created_at) VALUES
 (?, ?, ?, 'admin', 1, ?),
 (?, ?, ?, 'traveler', 1, ?);
-`, "admin@itour.kz", "Админ", adminHash, now,
-		"guest@itour.kz", "Путешественник", guestHash, now)
+`, "admin@arala.tours", "Админ ARALA", adminHash, now,
+		"guest@arala.tours", "Путешественник", guestHash, now)
 	return err
 }
 

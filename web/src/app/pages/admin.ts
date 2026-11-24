@@ -8,74 +8,222 @@ import { Lead, User } from '../core/models';
   selector: 'app-admin',
   imports: [ReactiveFormsModule],
   template: `
-    <section class="wrap">
-      <h1>Админ</h1>
-      <p class="lead">Создайте аккаунт после оплаты — и человек увидит гайд.</p>
+    <section class="page wrap">
+      <header class="sec-head">
+        <p class="sec-kicker">ARALA · Управление группой</p>
+        <h1 class="sec-title">Админ-панель</h1>
+        <p class="sec-lead">Создайте аккаунт участнику после оплаты — и ему сразу откроется визовый гайд.</p>
+      </header>
 
-      <form [formGroup]="form" (ngSubmit)="create()">
-        <input formControlName="name" placeholder="Имя" />
-        <input formControlName="email" placeholder="Email" />
-        <input formControlName="password" placeholder="Пароль от 8 символов" />
-        <label class="chk"><input type="checkbox" formControlName="tourAccess" /> доступ к гайду</label>
-        <button type="submit">Создать аккаунт</button>
-        @if (msg()) { <p>{{ msg() }}</p> }
-      </form>
-
-      <h2>Путешественники</h2>
-      <table>
-        <thead>
-          <tr><th>Имя</th><th>Email</th><th>Роль</th><th>Гайд</th></tr>
-        </thead>
-        <tbody>
-          @for (u of users(); track u.id) {
-            <tr>
-              <td>{{ u.name }}</td>
-              <td>{{ u.email }}</td>
-              <td>{{ u.role }}</td>
-              <td>
-                <button type="button" (click)="toggle(u)">{{ u.tourAccess ? 'Открыт' : 'Закрыт' }}</button>
-              </td>
-            </tr>
+      <div class="panel">
+        <h2>Новый участник</h2>
+        <form [formGroup]="form" (ngSubmit)="create()">
+          <input formControlName="name" placeholder="Имя" />
+          <input formControlName="email" placeholder="Email" />
+          <input formControlName="password" placeholder="Пароль от 8 символов" />
+          <label class="chk"><input type="checkbox" formControlName="tourAccess" /> Доступ к визовому гайду</label>
+          <button type="submit" class="btn btn--primary btn--sm">Создать аккаунт</button>
+          @if (msg()) {
+            <p class="msg">{{ msg() }}</p>
           }
-        </tbody>
-      </table>
+        </form>
+      </div>
 
-      <h2>Заявки</h2>
-      <div class="leads">
-        @for (l of leads(); track l.id) {
-          <article>
-            <strong>{{ l.name }}</strong>
-            <p>{{ l.phone }} · {{ l.telegram }}</p>
-            <p>{{ l.message }}</p>
-          </article>
-        } @empty {
-          <p>Пока пусто</p>
-        }
+      <div class="panel">
+        <h2>Путешественники ({{ users().length }})</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Имя</th>
+                <th>Email</th>
+                <th>Роль</th>
+                <th>Гайд</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of users(); track u.id) {
+                <tr>
+                  <td><strong>{{ u.name }}</strong></td>
+                  <td>{{ u.email }}</td>
+                  <td><span class="role">{{ u.role }}</span></td>
+                  <td>
+                    <button type="button" class="toggle" [class.is-on]="u.tourAccess" (click)="toggle(u)">
+                      {{ u.tourAccess ? 'Открыт' : 'Закрыт' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Заявки с сайта ({{ leads().length }})</h2>
+        <div class="leads">
+          @for (l of leads(); track l.id) {
+            <article class="lead">
+              <strong>{{ l.name }}</strong>
+              <p class="contact">{{ l.phone }} @if (l.phone && l.telegram) { · } {{ l.telegram }}</p>
+              <p class="body">{{ l.message }}</p>
+            </article>
+          } @empty {
+            <p class="empty">Пока нет новых заявок.</p>
+          }
+        </div>
       </div>
     </section>
   `,
   styles: `
-    .wrap { padding: 140px 36px 80px; max-width: 960px; margin: 0 auto; }
-    h1 { font-size: 56px; letter-spacing: -0.05em; margin: 0 0 8px; }
-    .lead, h2 { color: #a1a1a6; }
-    h2 { margin: 48px 0 16px; font-size: 14px; letter-spacing: 0.14em; text-transform: uppercase; }
-    form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 32px 0; }
-    input {
-      background: rgb(255 255 255 / 0.04); border: 1px solid rgb(255 255 255 / 0.1);
-      border-radius: 12px; padding: 12px; color: #fff; font: inherit;
+    .page {
+      padding-top: 118px;
+      padding-bottom: 56px;
+      max-width: 980px;
     }
-    .chk { display: flex; align-items: center; gap: 8px; color: #d2d2d7; font-size: 14px; }
-    button {
-      border: 0; border-radius: 980px; padding: 10px 16px; font: inherit; font-weight: 600; cursor: pointer;
+
+    .panel {
+      margin-top: 24px;
+      padding: 26px 28px;
+      border-radius: var(--r-lg);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
     }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid rgb(255 255 255 / 0.08); }
-    .leads { display: grid; gap: 12px; }
-    article { padding: 16px; border-radius: 16px; background: rgb(255 255 255 / 0.04); }
-    article p { margin: 6px 0 0; color: #a1a1a6; }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-deep);
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input:not([type='checkbox']) {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14.5px;
+    }
+
+    .chk {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .msg {
+      margin: 0;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--alpine);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-subtle);
+    }
+
+    .role {
+      padding: 3px 9px;
+      border-radius: var(--r-pill);
+      background: var(--surface-soft);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .toggle {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--r-pill);
+      padding: 6px 14px;
+      background: var(--surface-soft);
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .toggle.is-on {
+      background: rgba(21, 128, 61, 0.12);
+      border-color: rgba(21, 128, 61, 0.35);
+      color: var(--success);
+    }
+
+    .leads {
+      display: grid;
+      gap: 12px;
+    }
+
+    .lead {
+      padding: 16px 18px;
+      border-radius: var(--r-md);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+
+    .lead strong {
+      font-size: 16px;
+    }
+
+    .contact {
+      margin: 4px 0 0;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--alpine);
+    }
+
+    .body {
+      margin: 8px 0 0;
+      font-size: 14.5px;
+      color: var(--text-muted);
+    }
+
+    .empty {
+      margin: 0;
+      color: var(--text-subtle);
+    }
+
     @media (max-width: 720px) {
-      .wrap { padding: 120px 18px; }
-      form { grid-template-columns: 1fr; }
+      .panel {
+        padding: 20px 18px;
+      }
+      form {
+        grid-template-columns: 1fr;
+      }
     }
   `,
 })
@@ -104,7 +252,7 @@ export class Admin {
   create() {
     this.msg.set('');
     if (this.form.invalid) {
-      this.msg.set('Заполните имя, email и пароль');
+      this.msg.set('Заполните имя, email и пароль от 8 символов');
       return;
     }
     const v = this.form.getRawValue();

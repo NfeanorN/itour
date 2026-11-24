@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { catchError, of, tap } from 'rxjs';
 import { User } from './models';
 
+export const TOKEN_KEY = 'arala_token';
+export const LEGACY_TOKEN_KEY = 'itour_token';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -26,10 +29,14 @@ export class AuthService {
   }
 
   restore() {
-    const token = localStorage.getItem('itour_token');
+    const token = localStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(LEGACY_TOKEN_KEY);
     if (!token) {
       this.ready.set(true);
       return;
+    }
+    if (!localStorage.getItem(TOKEN_KEY)) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
     }
     this.http.get<User>('/api/auth/me').subscribe({
       next: (u) => {
@@ -37,7 +44,8 @@ export class AuthService {
         this.ready.set(true);
       },
       error: () => {
-        localStorage.removeItem('itour_token');
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(LEGACY_TOKEN_KEY);
         this.user.set(null);
         this.ready.set(true);
       },
@@ -47,21 +55,21 @@ export class AuthService {
   login(email: string, password: string) {
     return this.http.post<{ token: string; user: User }>('/api/auth/login', { email, password }).pipe(
       tap((res) => {
-        localStorage.setItem('itour_token', res.token);
+        localStorage.setItem(TOKEN_KEY, res.token);
+        localStorage.removeItem(LEGACY_TOKEN_KEY);
         this.user.set(res.user);
       }),
     );
   }
 
   logout() {
-    localStorage.removeItem('itour_token');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
     this.user.set(null);
     void this.router.navigateByUrl('/');
   }
 
   ensureReady() {
-    return of(this.ready()).pipe(
-      catchError(() => of(true)),
-    );
+    return of(this.ready()).pipe(catchError(() => of(true)));
   }
 }

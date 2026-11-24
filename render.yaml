@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: itour-api
+    name: arala-api
     runtime: docker
     plan: free
     rootDir: server

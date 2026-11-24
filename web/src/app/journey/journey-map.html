@@ -1,18 +1,141 @@
-<section class="story-map">
-  <div #map class="map" role="img" aria-label="Карта маршрута"></div>
-  <div class="grade"></div>
-  <div class="vignette"></div>
+<section class="tracker-section">
+  <div class="wrap">
+    <header class="sec-head">
+      <p class="sec-kicker">Интерактивный маршрут · Живая телеметрия</p>
+      <h2 class="sec-title">Весь Евротур — <em>в реальном движении</em></h2>
+      <p class="sec-lead">
+        От вылета из Алматы через Италию и Париж до подъёма на 1 650 м в швейцарский Мюррен. Нажмите на любой город внизу, чтобы перелететь к нужному этапу.
+      </p>
+    </header>
 
-  <div class="hud">
-    <p class="kicker">{{ mode() === 'train' ? 'Поезд' : mode() === 'plane' ? 'Самолёт' : mode() === 'layover' ? 'Стыковка' : 'Маршрут' }}</p>
-    <h2>{{ title() }}</h2>
-    <p class="text">{{ text() }}</p>
-  </div>
+    <div class="cockpit">
+      <div class="cockpit-top">
+        <div class="cockpit-meta">
+          <span class="live-tag">
+            <span class="live-dot"></span>
+            ARALA ROUTE TRACKER
+          </span>
+          <span class="leg-counter">ЭТАП {{ legNumberLabel() }}</span>
+          <div class="controls">
+            <button type="button" class="ctrl-btn" (click)="togglePlay()">
+              {{ playing() ? 'Пауза' : done() ? 'Заново' : 'Пуск' }}
+            </button>
+            <button type="button" class="ctrl-btn ctrl-btn--ghost" (click)="replay()" aria-label="Повторить анимацию">
+              ↺
+            </button>
+          </div>
+        </div>
 
-  @if (done()) {
-    <div class="end">
-      <p>Можно подвигать карту руками.</p>
-      <button type="button" (click)="replay()">Посмотреть ещё раз</button>
+        <div class="flight-strip">
+          <div class="endpoint">
+            <div class="code-row">
+              <span class="code">{{ fromCity().code }}</span>
+              <span class="flag" aria-hidden="true">{{ fromCity().flag }}</span>
+            </div>
+            <span class="place">{{ fromCity().name }}</span>
+            <span class="sub">{{ fromCity().airport }}</span>
+          </div>
+
+          <div class="progress-col">
+            <span class="elapsed">{{ elapsedLabel() }}</span>
+            <div class="bar-track" aria-hidden="true">
+              <div class="bar-fill" [class.bar-fill--train]="currentLeg().mode === 'train'" [style.width.%]="progressPct()"></div>
+              <span
+                class="bar-marker"
+                [class.bar-marker--train]="currentLeg().mode === 'train'"
+                [style.left.%]="progressPct()"
+              ></span>
+            </div>
+            <span class="status-pill" [attr.data-tone]="status().tone">
+              <i></i>{{ status().label }}
+            </span>
+          </div>
+
+          <div class="endpoint endpoint--right">
+            <div class="code-row">
+              <span class="flag" aria-hidden="true">{{ toCity().flag }}</span>
+              <span class="code">{{ toCity().code }}</span>
+            </div>
+            <span class="place">{{ toCity().name }}</span>
+            <span class="sub">{{ toCity().airport }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="viewport">
+        <div #map class="map" role="img" aria-label="Интерактивная карта маршрута Евротура ARALA"></div>
+        <div class="vignette" aria-hidden="true"></div>
+        <div class="story-chip">
+          <span class="carrier">{{ currentLeg().carrier }}</span>
+          <p>{{ currentLeg().story }}</p>
+        </div>
+      </div>
+
+      <div class="telemetry">
+        <div class="metrics">
+          <div class="metric">
+            <span class="m-label">ДИСТАНЦИЯ ЭТАПА</span>
+            <strong class="m-val">{{ formatNum(distanceKm()) }} <small>км</small></strong>
+            <span class="m-sub">Всего: {{ formatNum(totalTraveledKm()) }} км</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">{{ currentLeg().mode === 'plane' ? 'ВЫСОТА ПОЛЁТА' : 'ВЫСОТА НАД МОРЕМ' }}</span>
+            <strong class="m-val">{{ formatNum(altitudeM()) }} <small>м</small></strong>
+            <span class="m-sub">Пик: {{ formatNum(currentLeg().maxAltitudeM) }} м</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">СКОРОСТЬ</span>
+            <strong class="m-val">{{ formatNum(speedKmh()) }} <small>км/ч</small></strong>
+            <span class="m-sub">Макс: {{ formatNum(currentLeg().maxSpeedKmh) }} км/ч</span>
+          </div>
+          <div class="metric">
+            <span class="m-label">ТРАНСПОРТ</span>
+            <strong class="m-val m-val--text">
+              {{ currentLeg().mode === 'plane' ? 'Самолёт' : currentLeg().alpine ? 'Альпы · поезд' : 'Поезд' }}
+            </strong>
+            <span class="m-sub">{{ currentLeg().label }}</span>
+          </div>
+        </div>
+
+        <div class="chart-wrap" aria-hidden="true">
+          <span class="axis-l">ВЫСОТА</span>
+          <svg viewBox="0 0 600 62" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="aralaAltGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.34" />
+                <stop offset="100%" stop-color="#f43f5e" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="16" x2="600" y2="16" class="grid-line" />
+            <line x1="0" y1="38" x2="600" y2="38" class="grid-line" />
+            @if (altArea()) {
+              <path [attr.d]="altArea()" fill="url(#aralaAltGrad)" />
+            }
+            @if (speedPath()) {
+              <path [attr.d]="speedPath()" class="spd-line" />
+            }
+            @if (altPath()) {
+              <path [attr.d]="altPath()" class="alt-line" />
+            }
+          </svg>
+          <span class="axis-r">СКОРОСТЬ</span>
+        </div>
+
+        <nav class="leg-strip" aria-label="Этапы маршрута">
+          @for (leg of legs; track leg.id; let i = $index) {
+            <button
+              type="button"
+              class="leg-pill"
+              [class.is-current]="activeLegIndex() === i"
+              [class.is-done]="activeLegIndex() > i"
+              (click)="jumpToLeg(i)"
+            >
+              <span class="leg-mode">{{ leg.mode === 'plane' ? '✈' : '🚆' }}</span>
+              {{ leg.chipLabel }}
+            </button>
+          }
+        </nav>
+      </div>
     </div>
-  }
+  </div>
 </section>

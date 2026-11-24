@@ -31,7 +31,7 @@ func CheckPassword(hash, password string) error {
 func secret() []byte {
 	s := os.Getenv("JWT_SECRET")
 	if s == "" {
-		s = "itour-dev-secret-change-me"
+		s = "arala-dev-secret-change-me"
 	}
 	return []byte(s)
 }
@@ -45,7 +45,7 @@ func Sign(userID int64, email, role string) (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(30 * 24 * time.Hour)),
-			Issuer:    "itour",
+			Issuer:    "arala",
 		},
 	}
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

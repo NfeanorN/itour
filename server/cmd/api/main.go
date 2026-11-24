@@ -21,14 +21,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	st, err := store.Open(filepath.Join(dataDir, "itour.db"))
+	st, err := store.Open(filepath.Join(dataDir, "arala.db"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer st.DB.Close()
 
 	handler := httpserver.New(st, guidesDir, staticDir)
-	log.Printf("iTour API on %s", addr)
+	log.Printf("ARALA API on %s", addr)
 	if err := http.ListenAndServe(addr, handler); err != nil {
 		log.Fatal(err)
 	}

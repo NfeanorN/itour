@@ -1,6 +1,6 @@
 import { Component, input, signal } from '@angular/core';
 import { Reveal } from '../core/reveal';
-import { City, PlaceKind } from '../data/tour';
+import { Chapter, PlaceKind } from '../data/tour';
 
 @Component({
   selector: 'app-city-chapter',
@@ -9,11 +9,11 @@ import { City, PlaceKind } from '../data/tour';
   styleUrl: './city-chapter.scss',
 })
 export class CityChapter {
-  readonly city = input.required<City>();
+  readonly chapter = input.required<Chapter>();
   readonly filter = signal<PlaceKind | 'all'>('all');
 
   places() {
-    const all = this.city().places;
+    const all = this.chapter().places;
     const f = this.filter();
     return f === 'all' ? all : all.filter((p) => p.kind === f);
   }
