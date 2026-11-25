@@ -27,8 +27,8 @@ import { AralaLogo } from '../shared/arala-logo';
           <a routerLink="/" fragment="dates">{{ i18n.t('Күндер мен баға', 'Даты и цены') }}</a>
           <a routerLink="/" fragment="route">{{ i18n.t('Маршрут картасы', 'Карта маршрута') }}</a>
           <a routerLink="/" fragment="cities">{{ i18n.t('Қалалар және Альпі', 'Города и Альпы') }}</a>
-          <a routerLink="/guide">{{ i18n.t('Жабық визалық гайд', 'Закрытый визовый гайд') }}</a>
-          <a routerLink="/login">{{ i18n.t('Жеке кабинет', 'Личный кабинет') }}</a>
+          <a routerLink="/" fragment="moments">{{ i18n.t('Жанды фото', 'Живые фото') }}</a>
+          <a routerLink="/" fragment="included">{{ i18n.t('Бағаға не кіреді', 'Что включено') }}</a>
         </div>
 
         <div class="col">

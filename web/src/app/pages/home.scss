@@ -582,38 +582,6 @@ h1 em {
   text-decoration: none;
 }
 
-.guide-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  padding: 26px 30px;
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.g-kicker {
-  font-size: 11.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--gold-deep);
-}
-
-.guide-banner h3 {
-  margin: 6px 0 6px;
-  font-size: 21px;
-  font-weight: 800;
-}
-
-.guide-banner p {
-  margin: 0;
-  max-width: 620px;
-  font-size: 14.5px;
-  color: var(--text-muted);
-}
-
 .book-box {
   display: grid;
   grid-template-columns: 1fr 1.05fr;
@@ -772,10 +740,6 @@ h1 em {
   .founders-stats,
   .book-form .two {
     grid-template-columns: 1fr;
-  }
-  .guide-banner {
-    flex-direction: column;
-    align-items: flex-start;
   }
   .book-box {
     padding: 24px 18px;

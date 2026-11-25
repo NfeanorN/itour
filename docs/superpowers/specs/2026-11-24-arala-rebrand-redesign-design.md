@@ -246,8 +246,8 @@ Rebuilt as a signature dark cockpit card (`border-radius: 28px`, `#080D18` surfa
   - Keep the existing lightweight deployment topology intact (Go + SQLite in `server/`, stateless/in-memory Vercel serverless in `web/api/_lib.js`) without introducing paid external databases in this redesign pass.
   - Because Vercel serverless isolates function memory across cold starts, the frontend booking flow submits to `POST /api/leads` (working end-to-end with Go+SQLite locally/on persistent hosts) **and** immediately gives the guest a 1-click pre-filled WhatsApp handoff (`+7 706 608 9508`) so no live lead is ever lost. (If ARALA later wants production persistent `/admin` accounts on Vercel, migrating `web/api/_lib.js` to Turso/Postgres or proxying `/api/*` to a persistent host is a clean follow-up task.)
 - **API & Metadata Rebrand:**
-  - `web/api/_lib.js`: update default seeded accounts to `admin@arala.tours` / `AralaAdmin2026!` and `guest@arala.tours` / `Eurotour2026!` (and keep `JWT_SECRET` env override with `arala-dev-secret-change-me` fallback).
-  - `server/internal/store/store.go`: update seeded accounts to match `admin@arala.tours` / `guest@arala.tours` (keeping `ADMIN_PASSWORD` env support).
+  - `web/api/_lib.js`: update seeded accounts to use environment variables (`ADMIN_EMAIL`, `ADMIN_PASSWORD`, `JWT_SECRET`) without hardcoded production credentials.
+  - `server/internal/store/store.go`: seed admin only when `ADMIN_EMAIL` and `ADMIN_PASSWORD` env vars are provided.
   - `server/cmd/api/main.go`: update log banner to `ARALA API on %s` and default SQLite filename to `arala.db`.
   - `server/internal/httpserver/server.go`: update `/api/tour` metadata to return ARALA's new Eurotour name, Instagram (`https://www.instagram.com/arala.tours/`), WhatsApp (`https://wa.me/77066089508`), and 8-destination route.
   - `web/vercel.json`, `render.yaml`, `README.md`: update project names (`arala-tours`, `arala-api`) and documentation credentials/descriptions.
@@ -268,7 +268,7 @@ Rebuilt as a signature dark cockpit card (`border-radius: 28px`, `#080D18` surfa
 1. **Primary Language = Russian** (with authentic Kazakh captions preserved naturally on the 8 real traveler photos). Adding a full `RU / KZ` switcher can be done if requested before planning.
 2. **Primary WhatsApp = `+7 706 608 9508`** for tour bookings (matching ARALA's Taplink primary tour CTA), and **`+7 777 205 7252`** for the Visa / Custom Route card (matching Taplink's visa CTA).
 3. **Keep & Restyle `/guide`, `/login`, `/admin`:** Preserve the paid-traveler visa guide and admin panel, fully restyled in the new light ARALA aesthetic, with leads from both the inline form and booking modal stored in `/admin` plus optional 1-click WhatsApp handoff.
-4. **Seeded Demo Credentials:** Updated cleanly from `*@itour.kz` to `admin@arala.tours` (`AralaAdmin2026!`) and `guest@arala.tours` (`Eurotour2026!`).
+4. **Seeded Demo Credentials:** Removed hardcoded demo credentials in favor of environment-only configuration (and later removed `/admin` and `/login` routes while bookings go straight to WhatsApp).
 5. **Other ARALA Offerings:** Placed cleanly as a compact 3-card strip near the bottom (*Рождественский Евротур*, *Америка Тур*, *Виза + индивидуальный маршрут от 150 000 ₸*) so the Classic Eurotour stays the undisputed hero while showcasing ARALA's full brand breadth.
 6. **Gated Guide Markdown Updates:** Synchronize all 5 guide `.md` files in both `web/api/content/` and `server/content/guides/` to reflect the Milan-first 8-city route, `90 €` consular fee, `5–7 кг` hand-luggage norm, and Jan–May Alpine packing (keeping Italy as main Schengen consulate).
 7. **Backend Persistence Topology:** Keep existing Go+SQLite + Vercel serverless setup without adding paid/external DBs in this pass; guarantee zero lost leads via dual submission (`POST /api/leads` + immediate pre-filled WhatsApp handoff).

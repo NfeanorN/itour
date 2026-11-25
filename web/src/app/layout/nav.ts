@@ -1,13 +1,12 @@
 import { afterNextRender, Component, computed, DestroyRef, HostListener, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../core/auth';
+import { RouterLink } from '@angular/router';
 import { I18nService } from '../core/i18n';
 import { WHATSAPP_TOURS, whatsappLink } from '../data/tour';
 import { AralaLogo } from '../shared/arala-logo';
 
 @Component({
   selector: 'app-nav',
-  imports: [RouterLink, RouterLinkActive, AralaLogo],
+  imports: [RouterLink, AralaLogo],
   template: `
     <header class="nav" [class.nav--scrolled]="scrolled()">
       <div class="wrap bar">
@@ -20,10 +19,7 @@ import { AralaLogo } from '../shared/arala-logo';
           <a routerLink="/" fragment="route">{{ i18n.t('Маршрут', 'Маршрут') }}</a>
           <a routerLink="/" fragment="cities">{{ i18n.t('Қалалар', 'Города') }}</a>
           <a routerLink="/" fragment="moments">{{ i18n.t('Жанды фото', 'Живые фото') }}</a>
-          <a routerLink="/guide" routerLinkActive="is-on">{{ i18n.t('Гайд', 'Гайд') }}</a>
-          @if (auth.isAdmin) {
-            <a routerLink="/admin" routerLinkActive="is-on">{{ i18n.t('Админ', 'Админ') }}</a>
-          }
+          <a routerLink="/" fragment="included">{{ i18n.t('Шарттар', 'Что включено') }}</a>
         </nav>
 
         <div class="actions">
@@ -45,14 +41,6 @@ import { AralaLogo } from '../shared/arala-logo';
           </div>
 
           <a [href]="waUrl()" target="_blank" rel="noreferrer" class="wa-btn">WhatsApp</a>
-          @if (auth.user(); as u) {
-            <span class="who">{{ u.name }}</span>
-            <button type="button" class="text-link" (click)="auth.logout()">
-              {{ i18n.t('Шығу', 'Выйти') }}
-            </button>
-          } @else {
-            <a routerLink="/login" class="text-link">{{ i18n.t('Кіру', 'Войти') }}</a>
-          }
           <a routerLink="/" fragment="book" class="btn btn--primary btn--sm cta-desk">
             {{ i18n.t('Жазылу', 'Записаться') }}
           </a>
@@ -88,25 +76,7 @@ import { AralaLogo } from '../shared/arala-logo';
             <a routerLink="/" fragment="included" (click)="menuOpen.set(false)">
               {{ i18n.t('Бағаға не кіреді', 'Что включено') }}
             </a>
-            <a routerLink="/guide" (click)="menuOpen.set(false)">
-              {{ i18n.t('Визалық гайд', 'Визовый гайд') }}
-            </a>
-            @if (auth.isAdmin) {
-              <a routerLink="/admin" (click)="menuOpen.set(false)">
-                {{ i18n.t('Админ-панель', 'Админ-панель') }}
-              </a>
-            }
             <hr />
-            @if (auth.user(); as u) {
-              <div class="sheet-user">
-                <span>{{ u.name }}</span>
-                <button type="button" (click)="logout()">{{ i18n.t('Шығу', 'Выйти') }}</button>
-              </div>
-            } @else {
-              <a routerLink="/login" (click)="menuOpen.set(false)">
-                {{ i18n.t('Жеке кабинетке кіру', 'Войти в кабинет') }}
-              </a>
-            }
             <a routerLink="/" fragment="book" class="btn btn--primary btn--sm sheet-cta" (click)="menuOpen.set(false)">
               {{ i18n.t('Турға жазылу', 'Записаться в тур') }}
             </a>
@@ -215,27 +185,6 @@ import { AralaLogo } from '../shared/arala-logo';
       background: var(--ink-dark-3);
     }
 
-    .who {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-subtle);
-    }
-
-    .text-link {
-      border: 0;
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 13.5px;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-      padding: 4px 2px;
-    }
-
-    .text-link:hover {
-      color: var(--text);
-    }
-
     .burger {
       display: none;
       width: 40px;
@@ -295,24 +244,6 @@ import { AralaLogo } from '../shared/arala-logo';
       margin: 6px 0;
     }
 
-    .sheet-user {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-muted);
-    }
-
-    .sheet-user button {
-      border: 0;
-      background: transparent;
-      color: var(--ruby);
-      font-weight: 700;
-      cursor: pointer;
-    }
-
     .sheet-cta {
       margin-top: 6px;
       text-align: center;
@@ -325,8 +256,6 @@ import { AralaLogo } from '../shared/arala-logo';
 
     @media (max-width: 1080px) {
       .links,
-      .who,
-      .text-link,
       .cta-desk {
         display: none;
       }
@@ -343,7 +272,6 @@ import { AralaLogo } from '../shared/arala-logo';
   `,
 })
 export class Nav {
-  readonly auth = inject(AuthService);
   readonly i18n = inject(I18nService);
   readonly scrolled = signal(false);
   readonly menuOpen = signal(false);
@@ -371,11 +299,6 @@ export class Nav {
   toggleMenu(e: MouseEvent): void {
     e.stopPropagation();
     this.menuOpen.update((v) => !v);
-  }
-
-  logout(): void {
-    this.menuOpen.set(false);
-    this.auth.logout();
   }
 
   @HostListener('document:click')

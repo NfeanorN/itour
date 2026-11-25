@@ -1,5 +1,5 @@
-const { json } = require('./_lib');
-
 module.exports = function handler(_req, res) {
-  json(res, 200, { status: 'ok' });
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.end(JSON.stringify({ status: 'ok' }));
 };

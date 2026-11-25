@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"crypto/rand"
 	"errors"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,6 +17,11 @@ type Claims struct {
 	Role   string `json:"role"`
 	jwt.RegisteredClaims
 }
+
+var (
+	fallbackOnce   sync.Once
+	fallbackSecret []byte
+)
 
 func HashPassword(password string) (string, error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(password), 12)
@@ -29,11 +36,14 @@ func CheckPassword(hash, password string) error {
 }
 
 func secret() []byte {
-	s := os.Getenv("JWT_SECRET")
-	if s == "" {
-		s = "arala-dev-secret-change-me"
+	if s := os.Getenv("JWT_SECRET"); s != "" {
+		return []byte(s)
 	}
-	return []byte(s)
+	fallbackOnce.Do(func() {
+		fallbackSecret = make([]byte, 32)
+		_, _ = rand.Read(fallbackSecret)
+	})
+	return fallbackSecret
 }
 
 func Sign(userID int64, email, role string) (string, error) {

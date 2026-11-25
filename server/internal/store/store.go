@@ -77,6 +77,11 @@ CREATE TABLE IF NOT EXISTS leads (
 }
 
 func (s *Store) seed() error {
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	adminPass := os.Getenv("ADMIN_PASSWORD")
+	if adminEmail == "" || adminPass == "" {
+		return nil
+	}
 	var n int
 	if err := s.DB.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&n); err != nil {
 		return err
@@ -84,25 +89,15 @@ func (s *Store) seed() error {
 	if n > 0 {
 		return nil
 	}
-	adminPass := os.Getenv("ADMIN_PASSWORD")
-	if adminPass == "" {
-		adminPass = "AralaAdmin2026!"
-	}
 	adminHash, err := auth.HashPassword(adminPass)
-	if err != nil {
-		return err
-	}
-	guestHash, err := auth.HashPassword("Eurotour2026!")
 	if err != nil {
 		return err
 	}
 	now := time.Now().UTC().Format(time.RFC3339)
 	_, err = s.DB.Exec(`
-INSERT INTO users (email, name, password_hash, role, tour_access, created_at) VALUES
-(?, ?, ?, 'admin', 1, ?),
-(?, ?, ?, 'traveler', 1, ?);
-`, "admin@arala.tours", "Админ ARALA", adminHash, now,
-		"guest@arala.tours", "Путешественник", guestHash, now)
+INSERT INTO users (email, name, password_hash, role, tour_access, created_at)
+VALUES (?, ?, ?, 'admin', 1, ?);
+`, adminEmail, "ARALA Admin", adminHash, now)
 	return err
 }
 

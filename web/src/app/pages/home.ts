@@ -1,7 +1,5 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { ApiService } from '../core/api';
 import { I18nService } from '../core/i18n';
 import { Reveal } from '../core/reveal';
 import {
@@ -32,7 +30,6 @@ import { MomentsGallery } from '../shared/moments-gallery';
   selector: 'app-home',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     JourneyMap,
     CityChapter,
     BookingModal,
@@ -43,7 +40,6 @@ import { MomentsGallery } from '../shared/moments-gallery';
   styleUrl: './home.scss',
 })
 export class Home {
-  private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
   readonly i18n = inject(I18nService);
   private readonly bookingModal = viewChild<BookingModal>(BookingModal);
@@ -143,18 +139,6 @@ export class Home {
       window.location.href = url;
     }
     this.sent.set(true);
-
-    const waveText = this.resolveWaveText(v.waveId, l);
-    const fullMessage = [
-      `${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`,
-      `${l === 'kk' ? 'Адам саны' : 'Гостей'}: ${v.guests}`,
-      v.message.trim(),
-    ]
-      .filter(Boolean)
-      .join(' · ');
-    this.api
-      .sendLead({ name: v.name.trim(), phone: 'WhatsApp', telegram: '', message: fullMessage })
-      .subscribe({ error: () => {} });
   }
 
   private resolveWaveText(id: string, lang: 'kk' | 'ru'): string {

@@ -119,9 +119,9 @@
 - Create: `web/api/_lib.test.mjs`
 
 **Interfaces:**
-- Produces: Cohesive light ARALA theme on `/login`, `/guide`, `/guide/:slug`, `/admin`; `arala_token` with `itour_token` migration fallback; synced ARALA Milan-first 8-city visa guides across all 10 Markdown files; rebranded Go & Vercel API defaults (`admin@arala.tours`, `guest@arala.tours`, `@arala.tours`, `+7 706 608 9508`).
+- Produces: Cohesive light ARALA theme on `/login`, `/guide`, `/guide/:slug`, `/admin`; `arala_token` with `itour_token` migration fallback; synced ARALA Milan-first 8-city visa guides across all 10 Markdown files; rebranded Go & Vercel API defaults (`@arala.tours`, `+7 706 608 9508`).
 
-- [ ] **Step 1:** Write failing test `web/api/_lib.test.mjs` verifying `admin@arala.tours` & `guest@arala.tours` seeded accounts, JWT sign/parse roundtrip, `addLead`/`listLeads`, and verifying all 5 guide Markdown files match byte-for-byte between `web/api/content/` and `server/content/guides/` and contain `Милан`, `Мюррен`, `Базель`, `90 €` without stale `iTour` branding.
+- [ ] **Step 1:** Write failing test `web/api/_lib.test.mjs` verifying JWT sign/parse roundtrip, `addLead`/`listLeads`, and verifying all 5 guide Markdown files match byte-for-byte between `web/api/content/` and `server/content/guides/` and contain `Милан`, `Мюррен`, `Базель`, `90 €` without stale `iTour` branding.
 - [ ] **Step 2:** Run `node --test web/api/_lib.test.mjs` and confirm FAIL.
 - [ ] **Step 3:** Update `auth.ts`, `auth.interceptor.ts`, restyle `login.ts`, `guides.ts`, `guide-detail.ts`, `admin.ts`, update all 10 guide `.md` files, and rebrand `web/api/_lib.js`, `server/` files, `render.yaml`, `README.md` (preserving `web/vercel.json` compatibility with existing Vercel project!).
 - [ ] **Step 4:** Run `node --test web/api/_lib.test.mjs`, `cd server && go build ./...`, and `cd web && npm run build` — verify all pass with exit 0.

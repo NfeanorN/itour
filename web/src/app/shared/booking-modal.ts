@@ -1,6 +1,5 @@
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ApiService } from '../core/api';
 import { I18nService } from '../core/i18n';
 import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
 
@@ -274,7 +273,6 @@ import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
   `,
 })
 export class BookingModal {
-  private readonly api = inject(ApiService);
   private readonly fb = inject(FormBuilder);
   readonly i18n = inject(I18nService);
   private readonly dlg = viewChild<ElementRef<HTMLDialogElement>>('dlg');
@@ -357,15 +355,6 @@ export class BookingModal {
 
     this.submittedName.set(v.name.trim());
     this.sent.set(true);
-
-    // Best-effort non-blocking log for local Go/SQLite admin if running
-    const waveText = this.resolveWaveText(v.waveId, l);
-    const message = [`${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`, `${l === 'kk' ? 'Адам саны' : 'Гостей'}: ${v.guests}`, v.comment.trim()]
-      .filter(Boolean)
-      .join(' · ');
-    this.api
-      .sendLead({ name: v.name.trim(), phone: 'WhatsApp', telegram: '', message })
-      .subscribe({ error: () => {} });
   }
 
   private resolveWaveText(id: string, lang: 'kk' | 'ru'): string {

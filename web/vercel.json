@@ -3,10 +3,5 @@
   "framework": "angular",
   "buildCommand": "npm run build",
   "outputDirectory": "dist/web/browser",
-  "functions": {
-    "api/guides/[slug].js": {
-      "includeFiles": "api/content/**"
-    }
-  },
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }
