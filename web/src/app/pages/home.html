@@ -382,19 +382,24 @@
 
       @if (sent()) {
         <div class="book-thanks">
-          <span class="ok-badge">✓ {{ i18n.t('Өтінім жіберілді', 'Заявка отправлена') }}</span>
-          <h3>{{ i18n.t('Жақын арада хабарласамыз!', 'Скоро свяжемся с вами!') }}</h3>
+          <span class="ok-badge">✓ {{ i18n.t('WhatsApp чаты ашылды', 'Чат WhatsApp открыт') }}</span>
+          <h3>{{ i18n.t('Жауабымызды күтіңіз!', 'Ответим вам в WhatsApp!') }}</h3>
           <p>
             {{
               i18n.t(
-                'Бағдарлама мен бос орындарды бірден алу үшін WhatsApp чатын ашыңыз:',
-                'Если хотите получить программу и свободные места моментально — откройте чат в WhatsApp:'
+                'Егер WhatsApp автоматты түрде ашылмаса, төмендегі батырманы басыңыз — хабарлама дайын:',
+                'Если WhatsApp не открылся автоматически, нажмите кнопку ниже — текст заявки уже собран:'
               )
             }}
           </p>
-          <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--primary">
-            {{ i18n.t('WhatsApp-қа қайталау', 'Продублировать в WhatsApp') }}
-          </a>
+          <div class="form-actions">
+            <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--primary">
+              {{ i18n.t('WhatsApp-ты ашу', 'Открыть WhatsApp') }}
+            </a>
+            <button type="button" class="btn btn--ghost" (click)="sent.set(false)">
+              {{ i18n.t('Қайта толтыру', 'Заполнить снова') }}
+            </button>
+          </div>
         </div>
       } @else {
         <form class="book-form" [formGroup]="form" (ngSubmit)="submit()">
@@ -408,27 +413,28 @@
           </label>
           <div class="two">
             <label>
-              Телефон / WhatsApp
-              <input formControlName="phone" placeholder="+7 7XX XXX XX XX" autocomplete="tel" />
+              {{ i18n.t('Классикалық Еуротур күндері', 'Даты Классического Евротура') }}
+              <select formControlName="waveId">
+                @for (w of waves; track w.id) {
+                  <option [value]="w.id">
+                    {{ i18n.pick(w.dates) }} — {{ w.price }}
+                  </option>
+                }
+                <option value="help">{{ i18n.t('Күн таңдауға көмектесіңізші', 'Помогите выбрать даты') }}</option>
+              </select>
             </label>
             <label>
-              Telegram
-              <input formControlName="telegram" placeholder="@username" />
+              {{ i18n.t('Адам саны', 'Количество человек') }}
+              <select formControlName="guests">
+                <option value="1">{{ i18n.t('1 адам', '1 человек') }}</option>
+                <option value="2">{{ i18n.t('2 адам', '2 человека') }}</option>
+                <option value="3">{{ i18n.t('3 адам', '3 человека') }}</option>
+                <option value="4+">{{ i18n.t('4+ адам', '4+ человека') }}</option>
+              </select>
             </label>
           </div>
           <label>
-            {{ i18n.t('Классикалық Еуротур күндері', 'Даты Классического Евротура') }}
-            <select formControlName="waveId">
-              @for (w of waves; track w.id) {
-                <option [value]="w.id">
-                  {{ i18n.pick(w.dates) }} — {{ w.price }} ({{ i18n.pick(w.duration) }})
-                </option>
-              }
-              <option value="help">{{ i18n.t('Күн таңдауға көмектесіңізші', 'Помогите выбрать даты') }}</option>
-            </select>
-          </label>
-          <label>
-            {{ i18n.t('Хабарлама', 'Сообщение') }}
+            {{ i18n.t('Хабарлама (міндетті емес)', 'Сообщение (необязательно)') }}
             <textarea
               formControlName="message"
               rows="3"
@@ -439,16 +445,9 @@
             <p class="form-err">{{ err() }}</p>
           }
           <div class="form-actions">
-            <button type="submit" class="btn btn--primary" [disabled]="sending()">
-              {{
-                sending()
-                  ? i18n.t('Жіберілуде…', 'Отправляем…')
-                  : i18n.t('Өтінім қалдыру', 'Оставить заявку')
-              }}
+            <button type="submit" class="btn btn--primary">
+              {{ i18n.t('WhatsApp арқылы жіберу →', 'Отправить в WhatsApp →') }}
             </button>
-            <a [href]="formWaUrl()" target="_blank" rel="noreferrer" class="btn btn--ghost">
-              {{ i18n.t('WhatsApp-қа жазу', 'Написать в WhatsApp') }}
-            </a>
           </div>
         </form>
       }

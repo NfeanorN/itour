@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../core/api';
@@ -28,19 +27,19 @@ import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
 
         @if (sent()) {
           <div class="done">
-            <div class="done-badge">✓ {{ i18n.t('Өтінім қабылданды', 'Заявка принята') }}</div>
+            <div class="done-badge">✓ {{ i18n.t('WhatsApp чаты ашылды', 'Чат WhatsApp открыт') }}</div>
             <p>
               {{ i18n.t('Рақмет,', 'Спасибо,') }} <strong>{{ submittedName() }}</strong>!
               {{
                 i18n.t(
-                  'Өтініміңізді алдық, жақын арада хабарласамыз. Одан да жылдам жауап алу үшін бір батырмамен WhatsApp-қа жаза аласыз:',
-                  'Мы получили заявку и свяжемся с вами в ближайшее время. Чтобы получить ответ ещё быстрее — продублируйте запрос в WhatsApp одним нажатием:'
+                  'Дайын хабарламамен WhatsApp ашылды. Егер чат автоматты түрде ашылмаса, төмендегі батырманы басыңыз:',
+                  'Мы открыли WhatsApp с готовым текстом заявки. Если чат не открылся автоматически, нажмите кнопку ниже:'
                 )
               }}
             </p>
             <div class="done-actions">
               <a [href]="waUrl()" target="_blank" rel="noreferrer" class="btn btn--primary">
-                {{ i18n.t('WhatsApp-қа жазу', 'Написать в WhatsApp') }}
+                {{ i18n.t('WhatsApp-ты ашу', 'Открыть WhatsApp') }}
               </a>
               <button type="button" class="btn btn--ghost" (click)="close()">
                 {{ i18n.t('Жабу', 'Закрыть') }}
@@ -60,33 +59,34 @@ import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
 
             <div class="row">
               <label>
-                {{ i18n.t('Телефон / WhatsApp', 'Телефон / WhatsApp') }}
-                <input formControlName="phone" placeholder="+7 7XX XXX XX XX" autocomplete="tel" />
+                {{ i18n.t('Ыңғайлы тур күндері', 'Удобные даты тура') }}
+                <select formControlName="waveId">
+                  @for (w of waves; track w.id) {
+                    <option [value]="w.id">
+                      {{ i18n.pick(w.dates) }} — {{ w.price }}
+                    </option>
+                  }
+                  <option value="help">{{ i18n.t('Күн таңдауға көмектесіңізші', 'Помогите выбрать даты') }}</option>
+                </select>
               </label>
+
               <label>
-                {{ i18n.t('Telegram (ыңғайлы болса)', 'Telegram (если удобнее)') }}
-                <input formControlName="telegram" placeholder="@username" />
+                {{ i18n.t('Адам саны', 'Количество человек') }}
+                <select formControlName="guests">
+                  <option value="1">{{ i18n.t('1 адам', '1 человек') }}</option>
+                  <option value="2">{{ i18n.t('2 адам', '2 человека') }}</option>
+                  <option value="3">{{ i18n.t('3 адам', '3 человека') }}</option>
+                  <option value="4+">{{ i18n.t('4+ адам', '4+ человека') }}</option>
+                </select>
               </label>
             </div>
 
             <label>
-              {{ i18n.t('Ыңғайлы тур күндері', 'Удобные даты тура') }}
-              <select formControlName="waveId">
-                @for (w of waves; track w.id) {
-                  <option [value]="w.id">
-                    {{ i18n.pick(w.dates) }} — {{ w.price }} ({{ i18n.pick(w.duration) }})
-                  </option>
-                }
-                <option value="help">{{ i18n.t('Күн таңдауға көмектесіңізші', 'Помогите выбрать даты') }}</option>
-              </select>
-            </label>
-
-            <label>
-              {{ i18n.t('Пікір немесе сұрақ', 'Комментарий или вопрос') }}
+              {{ i18n.t('Пікір немесе сұрақ (міндетті емес)', 'Комментарий или вопрос (необязательно)') }}
               <textarea
                 formControlName="comment"
                 rows="3"
-                [placeholder]="i18n.t('Мысалы: екеуміз барамыз, виза бойынша сұрақ бар', 'Например: лечу вдвоём, интересует виза')"
+                [placeholder]="i18n.t('Мысалы: виза бойынша сұрағым бар', 'Например: интересует помощь с визой')"
               ></textarea>
             </label>
 
@@ -95,22 +95,15 @@ import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
             }
 
             <div class="actions">
-              <button type="submit" class="btn btn--primary" [disabled]="sending()">
-                {{
-                  sending()
-                    ? i18n.t('Жіберілуде…', 'Отправляем…')
-                    : i18n.t('Өтінім қалдыру', 'Оставить заявку')
-                }}
+              <button type="submit" class="btn btn--primary">
+                {{ i18n.t('WhatsApp арқылы жіберу →', 'Отправить в WhatsApp →') }}
               </button>
-              <a [href]="waUrl()" target="_blank" rel="noreferrer" class="btn btn--ghost">
-                {{ i18n.t('Бірден WhatsApp-қа', 'Сразу в WhatsApp') }}
-              </a>
             </div>
             <p class="hint">
               {{
                 i18n.t(
-                  'Тегін визалық сүйемелдеу кіреді. Авторлық топтағы орындар шектеулі.',
-                  'Бесплатное визовое сопровождение включено. Места в группе ограничены.'
+                  'Батырманы басқанда дайын өтініммен +7 706 608 9508 WhatsApp чаты ашылады. Тегін визалық сүйемелдеу кіреді.',
+                  'После нажатия откроется чат WhatsApp +7 706 608 9508 с уже заполненным текстом. Бесплатное визовое сопровождение включено.'
                 )
               }}
             </p>
@@ -193,7 +186,7 @@ import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
 
     .row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.35fr 0.85fr;
       gap: 12px;
     }
 
@@ -245,6 +238,7 @@ import { TOUR_WAVES, WHATSAPP_TOURS, whatsappLink } from '../data/tour';
       margin: 2px 0 0;
       font-size: 12.5px;
       color: var(--text-subtle);
+      line-height: 1.45;
     }
 
     .done {
@@ -287,16 +281,14 @@ export class BookingModal {
 
   readonly waves = TOUR_WAVES;
   readonly sent = signal(false);
-  readonly sending = signal(false);
   readonly err = signal('');
   readonly submittedName = signal('');
   readonly formTick = signal(0);
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    phone: [''],
-    telegram: [''],
     waveId: [TOUR_WAVES[0].id],
+    guests: ['1'],
     comment: [''],
   });
 
@@ -311,8 +303,7 @@ export class BookingModal {
         : 'Здравствуйте! Хочу записаться в Классический Евротур ARALA.',
       v.name.trim() ? `${l === 'kk' ? 'Есімім' : 'Имя'}: ${v.name.trim()}` : '',
       waveText ? `${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}` : '',
-      v.phone.trim() ? `Телефон: ${v.phone.trim()}` : '',
-      v.telegram.trim() ? `Telegram: ${v.telegram.trim()}` : '',
+      `${l === 'kk' ? 'Адам саны' : 'Количество человек'}: ${v.guests}`,
       v.comment.trim() ? `${l === 'kk' ? 'Пікір' : 'Комментарий'}: ${v.comment.trim()}` : '',
     ].filter(Boolean);
     return whatsappLink(WHATSAPP_TOURS, parts.join('\n'));
@@ -356,39 +347,25 @@ export class BookingModal {
       this.err.set(l === 'kk' ? 'Есіміңізді жазыңыз' : 'Напишите ваше имя');
       return;
     }
-    if (!v.phone.trim() && !v.telegram.trim()) {
-      this.err.set(
-        l === 'kk' ? 'Байланыс үшін телефон немесе Telegram көрсетіңіз' : 'Укажите телефон или Telegram для связи',
-      );
-      return;
+
+    this.formTick.update((n) => n + 1);
+    const url = this.waUrl();
+    const popup = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!popup) {
+      window.location.href = url;
     }
-    this.sending.set(true);
+
+    this.submittedName.set(v.name.trim());
+    this.sent.set(true);
+
+    // Best-effort non-blocking log for local Go/SQLite admin if running
     const waveText = this.resolveWaveText(v.waveId, l);
-    const message = [`${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`, v.comment.trim()].filter(Boolean).join(' · ');
+    const message = [`${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`, `${l === 'kk' ? 'Адам саны' : 'Гостей'}: ${v.guests}`, v.comment.trim()]
+      .filter(Boolean)
+      .join(' · ');
     this.api
-      .sendLead({
-        name: v.name.trim(),
-        phone: v.phone.trim(),
-        telegram: v.telegram.trim(),
-        message,
-      })
-      .subscribe({
-        next: () => {
-          this.submittedName.set(v.name.trim());
-          this.sending.set(false);
-          this.sent.set(true);
-          this.formTick.update((n) => n + 1);
-        },
-        error: (e: HttpErrorResponse) => {
-          this.sending.set(false);
-          this.err.set(
-            e.error?.error ??
-              (l === 'kk'
-                ? 'Сервер қазір жауап бермеді — төмендегі «Бірден WhatsApp-қа» батырмасын басыңыз, хабарлама дайын.'
-                : 'Сервер сейчас недоступен — нажмите «Сразу в WhatsApp» ниже, сообщение уже собрано.'),
-          );
-        },
-      });
+      .sendLead({ name: v.name.trim(), phone: 'WhatsApp', telegram: '', message })
+      .subscribe({ error: () => {} });
   }
 
   private resolveWaveText(id: string, lang: 'kk' | 'ru'): string {

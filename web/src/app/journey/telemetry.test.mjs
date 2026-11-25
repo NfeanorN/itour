@@ -144,6 +144,10 @@ test('map uses preloaded local 50m vector canvas (zero external tiles), Kazakh-n
 
   const modalSrc = readFileSync(resolve(import.meta.dirname, '..', 'shared', 'booking-modal.ts'), 'utf8');
   assert.ok(modalSrc.includes('overflow-y: auto'), 'booking modal sheet must scroll vertically on short viewports');
+  assert.ok(modalSrc.includes('window.open(url'), 'booking modal must open WhatsApp directly on submit');
+
+  const homeTs = readFileSync(resolve(import.meta.dirname, '..', 'pages', 'home.ts'), 'utf8');
+  assert.ok(homeTs.includes('window.open(url'), 'inline booking form must open WhatsApp directly on submit');
 
   const homeHtml = readFileSync(resolve(import.meta.dirname, '..', 'pages', 'home.html'), 'utf8');
   assert.ok(!homeHtml.includes('app-hotel-showcase'), 'exaggerated hotel showcase must be removed');

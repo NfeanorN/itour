@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -69,15 +68,13 @@ export class Home {
   });
 
   readonly sent = signal(false);
-  readonly sending = signal(false);
   readonly err = signal('');
   readonly formTick = signal(0);
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
-    phone: [''],
-    telegram: [''],
     waveId: [TOUR_WAVES[0].id],
+    guests: ['1'],
     message: [''],
   });
 
@@ -112,8 +109,7 @@ export class Home {
         : 'Здравствуйте! Оставляю заявку на Классический Евротур ARALA.',
       v.name.trim() ? `${l === 'kk' ? 'Есімім' : 'Имя'}: ${v.name.trim()}` : '',
       waveText ? `${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}` : '',
-      v.phone.trim() ? `Телефон: ${v.phone.trim()}` : '',
-      v.telegram.trim() ? `Telegram: ${v.telegram.trim()}` : '',
+      `${l === 'kk' ? 'Адам саны' : 'Количество человек'}: ${v.guests}`,
       v.message.trim() ? `${l === 'kk' ? 'Пікір' : 'Комментарий'}: ${v.message.trim()}` : '',
     ].filter(Boolean);
     return whatsappLink(WHATSAPP_TOURS, lines.join('\n'));
@@ -139,38 +135,26 @@ export class Home {
       this.err.set(l === 'kk' ? 'Есіміңізді жазыңыз' : 'Напишите ваше имя');
       return;
     }
-    if (!v.phone.trim() && !v.telegram.trim()) {
-      this.err.set(l === 'kk' ? 'Телефон немесе Telegram көрсетіңіз' : 'Укажите телефон или Telegram');
-      return;
+
+    this.formTick.update((n) => n + 1);
+    const url = this.formWaUrl();
+    const popup = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!popup) {
+      window.location.href = url;
     }
-    this.sending.set(true);
+    this.sent.set(true);
+
     const waveText = this.resolveWaveText(v.waveId, l);
-    const fullMessage = [`${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`, v.message.trim()]
+    const fullMessage = [
+      `${l === 'kk' ? 'Күндері' : 'Даты'}: ${waveText}`,
+      `${l === 'kk' ? 'Адам саны' : 'Гостей'}: ${v.guests}`,
+      v.message.trim(),
+    ]
       .filter(Boolean)
       .join(' · ');
     this.api
-      .sendLead({
-        name: v.name.trim(),
-        phone: v.phone.trim(),
-        telegram: v.telegram.trim(),
-        message: fullMessage,
-      })
-      .subscribe({
-        next: () => {
-          this.sent.set(true);
-          this.sending.set(false);
-          this.formTick.update((n) => n + 1);
-        },
-        error: (e: HttpErrorResponse) => {
-          this.sending.set(false);
-          this.err.set(
-            e.error?.error ??
-              (l === 'kk'
-                ? 'Серверге жіберілмеді — «WhatsApp-қа жазу» батырмасын басыңыз, өтінім мәтіні дайын.'
-                : 'Не удалось отправить на сервер — нажмите «Написать в WhatsApp», текст заявки уже готов.'),
-          );
-        },
-      });
+      .sendLead({ name: v.name.trim(), phone: 'WhatsApp', telegram: '', message: fullMessage })
+      .subscribe({ error: () => {} });
   }
 
   private resolveWaveText(id: string, lang: 'kk' | 'ru'): string {
